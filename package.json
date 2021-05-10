@@ -1,0 +1,45 @@
+{
+  "name": "smtliblib",
+  "version": "1.0.0",
+  "description": "An SMTLIBv2 parser and AST",
+  "main": "dist/src/smt.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha -r ts-node/register test/*.spec.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dbarowy/smtliblib.git"
+  },
+  "keywords": [
+    "smtlib",
+    "smtlibv2",
+    "parser",
+    "parse",
+    "ast",
+    "z3",
+    "solver"
+  ],
+  "author": "Daniel W. Barowy",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/dbarowy/smtliblib/issues"
+  },
+  "homepage": "https://github.com/dbarowy/smtliblib#readme",
+  "dependencies": {
+    "parsecco": "^1.4.6",
+    "typescript": "^4.2.3"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.16",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^15.0.1",
+    "chai": "^4.3.4",
+    "mocha": "^8.3.2",
+    "ts-node": "^9.1.1",
+    "tslint": "^6.1.3"
+  }
+}
