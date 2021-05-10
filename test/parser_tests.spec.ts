@@ -1,6 +1,6 @@
 import { SMT } from "../src/smt";
 import { CharUtil as CU } from "parsecco";
-import { assert, expect } from "chai";
+import { assert, Assertion, expect } from "chai";
 import "mocha";
 import * as fs from "fs";
 
@@ -732,6 +732,29 @@ sat
       assert(true);
     } catch (e) {
       console.log(e);
+      assert.fail(e);
+    }
+  });
+
+  it("should parse the example", () => {
+    try {
+      const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";
+      const output = SMT.parse(input);
+      const expected = [
+        new SMT.FunctionDefinition(
+          "plus",
+          [
+            new SMT.ArgumentDeclaration("a", SMT.Int.sort),
+            new SMT.ArgumentDeclaration("b", SMT.Int.sort),
+          ],
+          SMT.Int.sort,
+          new SMT.Plus([new SMT.Var("a"), new SMT.Var("b")])
+        ),
+      ];
+      expect(output).to.eql(expected);
+      // uncomment statement below to see the output of the README example
+      // console.log(JSON.stringify(output));
+    } catch (e) {
       assert.fail(e);
     }
   });
