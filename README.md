@@ -66,6 +66,32 @@ will produce an AST that looks something like:
 ]
 ```
 
+## Serialization / Deserialization
+
+To make sending SMTLIB ASTs over the wire easy, all AST nodes in this library know how to serialize themselves to and deserialize themselves from JSON. This is convenient because one can use `smtliblib` on both sides of a connection and have real Typescript types.
+
+To use, refer to the `SMT.serialize` and `SMT.deserialize` helper functions.
+
+Note that if you use this feature to send data via, e.g., a REST interface, you may still need to use Javascript's [`JSON.parse`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse) and [`JSON.stringify`](https://www.w3schools.com/js/js_json_stringify.asp) functions.
+
+For example, parsing an expression, serializing and then stringifying it:
+
+```
+const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";
+const output = SMT.parse(input);
+const json = SMT.serialize(output);
+const jsonStr = JSON.stringify(json);
+```
+
+and then later, parsing it and deserializing it:
+
+```
+const jsonObj = JSON.parse(jsonStr);
+const output2 = SMT.deserialize(jsonObj);
+```
+
+where `output` is guaranteed to be exactly the same as `output2`.
+
 ## Contributing
 
 This library is currently incomplete. I add features to it as I need them.

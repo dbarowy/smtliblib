@@ -761,12 +761,26 @@ sat
 });
 
 describe("Serialization", () => {
-  it("should produce the same output, once deserialized, as its input", () => {
+  it("should reproduce the input", () => {
     try {
       const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";
       const output = SMT.parse(input);
       const json = SMT.serialize(output);
       const output2 = SMT.deserialize(json);
+      expect(output2).to.eql(output);
+    } catch (e) {
+      assert.fail();
+    }
+  });
+
+  it("should also reproduce the input, even when stringified", () => {
+    try {
+      const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";
+      const output = SMT.parse(input);
+      const json = SMT.serialize(output);
+      const jsonStr = JSON.stringify(json);
+      const jsonObj = JSON.parse(jsonStr);
+      const output2 = SMT.deserialize(jsonObj);
       expect(output2).to.eql(output);
     } catch (e) {
       assert.fail();
