@@ -400,7 +400,7 @@ export namespace SMT {
     public get serialized(): object {
       return {
         type: "Plus",
-        clauses: this.terms.map((e) => e.serialized),
+        terms: this.terms.map((e) => e.serialized),
       };
     }
 
@@ -433,7 +433,7 @@ export namespace SMT {
     public get serialized(): object {
       return {
         type: "Minus",
-        clauses: this.terms.map((e) => e.serialized),
+        terms: this.terms.map((e) => e.serialized),
       };
     }
 
@@ -466,7 +466,7 @@ export namespace SMT {
     public get serialized(): object {
       return {
         type: "LessThan",
-        clauses: this.terms.map((e) => e.serialized),
+        terms: this.terms.map((e) => e.serialized),
       };
     }
 
@@ -499,7 +499,7 @@ export namespace SMT {
     public get serialized(): object {
       return {
         type: "LessThanOrEqual",
-        clauses: this.terms.map((e) => e.serialized),
+        terms: this.terms.map((e) => e.serialized),
       };
     }
 
@@ -532,7 +532,7 @@ export namespace SMT {
     public get serialized(): object {
       return {
         type: "GreaterThan",
-        clauses: this.terms.map((e) => e.serialized),
+        terms: this.terms.map((e) => e.serialized),
       };
     }
 
@@ -565,7 +565,7 @@ export namespace SMT {
     public get serialized(): object {
       return {
         type: "GreaterThanOrEqual",
-        clauses: this.terms.map((e) => e.serialized),
+        terms: this.terms.map((e) => e.serialized),
       };
     }
 

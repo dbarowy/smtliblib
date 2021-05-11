@@ -761,14 +761,13 @@ sat
 });
 
 describe("Serialization", () => {
-  it("should work", () => {
+  it("should produce the same output, once deserialized, as its input", () => {
     try {
       const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";
       const output = SMT.parse(input);
       const json = SMT.serialize(output);
-      console.log(json);
       const output2 = SMT.deserialize(json);
-      console.log(JSON.stringify(output2));
+      expect(output2).to.eql(output);
     } catch (e) {
       assert.fail();
     }
