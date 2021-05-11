@@ -1453,7 +1453,7 @@ export namespace SMT {
   export function deserialize(json: object): Expr[] {
     if (Array.isArray(json)) {
       const arr = json as JSONObject[];
-      arr.map((e) => deserializeExpr(e));
+      return arr.map((e) => deserializeExpr(e));
     } else {
       throw new Error(
         "Valid SMTLIB JSON object must be an outermost array of expressions."

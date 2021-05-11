@@ -767,6 +767,8 @@ describe("Serialization", () => {
       const output = SMT.parse(input);
       const json = SMT.serialize(output);
       console.log(json);
+      const output2 = SMT.deserialize(json);
+      console.log(JSON.stringify(output2));
     } catch (e) {
       assert.fail();
     }
