@@ -10,8 +10,11 @@
  * This library provides core SMTLIB functionality, but
  * it is currently not complete.  Patches welcome.
  */
-
 import { Primitives as P, CharUtil as CU } from "parsecco";
+
+interface JSONObject {
+  [key: string]: any;
+}
 
 /**
  * exprs is the top-level parser in the grammar.
@@ -180,6 +183,11 @@ export interface Expr {
    * Use a decl getter property for declarations.
    */
   formula: string;
+
+  /**
+   * Returns the current expression as a JSON object.
+   */
+  serialized: object;
 }
 
 export interface Sort {
@@ -192,6 +200,11 @@ export interface Sort {
    * Get the singleton sort instance.
    */
   sort: Sort;
+
+  /**
+   * Returns the current expression as a JSON object.
+   */
+  serialized: object;
 }
 
 /**
@@ -222,12 +235,11 @@ export namespace SMT {
   /**
    * Parses a valid identifier.
    */
-  export const identifier = P.bind<CU.CharStream, CU.CharStream>(
-    __identifier
-  )((id) =>
-    reservedWords.has(id.toString())
-      ? P.zero<CU.CharStream>("Invalid use of reserved word.")
-      : P.result(id)
+  export const identifier = P.bind<CU.CharStream, CU.CharStream>(__identifier)(
+    (id) =>
+      reservedWords.has(id.toString())
+        ? P.zero<CU.CharStream>("Invalid use of reserved word.")
+        : P.result(id)
   );
 
   const reservedWords = new Set(["true", "false", "sat", "unsat"]);
@@ -250,6 +262,19 @@ export namespace SMT {
     public static get parser(): P.IParser<And> {
       return opParser("and", (es) => new And(es));
     }
+
+    public get serialized(): object {
+      return {
+        type: "And",
+        clauses: this.clauses.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): And {
+      return new And(
+        (json["clauses"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
+    }
   }
 
   export class Or implements Expr {
@@ -269,6 +294,19 @@ export namespace SMT {
 
     public static get parser(): P.IParser<Or> {
       return opParser("or", (es) => new Or(es));
+    }
+
+    public get serialized(): object {
+      return {
+        type: "Or",
+        clauses: this.clauses.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): Or {
+      return new Or(
+        (json["clauses"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
     }
   }
 
@@ -294,6 +332,17 @@ export namespace SMT {
         )
       );
     }
+
+    public get serialized(): object {
+      return {
+        type: "Not",
+        clauses: this.clause.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): Not {
+      return new Not(deserializeExpr(json["clause"]));
+    }
   }
 
   export class Equals implements Expr {
@@ -301,8 +350,7 @@ export namespace SMT {
 
     /**
      * Represents an equality constraint in SMTLIB.
-     * @param term1 An SMTLIB clause.
-     * @param term2 An SMTLIB clause.
+     * @param terms An array of SMTLIB terms.
      */
     constructor(terms: Expr[]) {
       this.terms = terms;
@@ -314,6 +362,19 @@ export namespace SMT {
 
     public static get parser(): P.IParser<Equals> {
       return opParser("=", (es) => new Equals(es));
+    }
+
+    public get serialized(): object {
+      return {
+        type: "Equals",
+        terms: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): Equals {
+      return new Equals(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
     }
   }
 
@@ -335,6 +396,19 @@ export namespace SMT {
     public static get parser(): P.IParser<Plus> {
       return opParser("+", (es) => new Plus(es));
     }
+
+    public get serialized(): object {
+      return {
+        type: "Plus",
+        clauses: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): Plus {
+      return new Plus(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
+    }
   }
 
   export class Minus implements Expr {
@@ -354,6 +428,19 @@ export namespace SMT {
 
     public static get parser(): P.IParser<Minus> {
       return opParser("-", (es) => new Minus(es));
+    }
+
+    public get serialized(): object {
+      return {
+        type: "Minus",
+        clauses: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): Minus {
+      return new Minus(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
     }
   }
 
@@ -375,6 +462,19 @@ export namespace SMT {
     public static get parser(): P.IParser<LessThan> {
       return opParser("<", (es) => new LessThan(es));
     }
+
+    public get serialized(): object {
+      return {
+        type: "LessThan",
+        clauses: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): LessThan {
+      return new LessThan(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
+    }
   }
 
   export class LessThanOrEqual implements Expr {
@@ -394,6 +494,19 @@ export namespace SMT {
 
     public static get parser(): P.IParser<LessThanOrEqual> {
       return opParser("<=", (es) => new LessThanOrEqual(es));
+    }
+
+    public get serialized(): object {
+      return {
+        type: "LessThanOrEqual",
+        clauses: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): LessThanOrEqual {
+      return new LessThanOrEqual(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
     }
   }
 
@@ -415,6 +528,19 @@ export namespace SMT {
     public static get parser(): P.IParser<GreaterThan> {
       return opParser(">", (es) => new GreaterThan(es));
     }
+
+    public get serialized(): object {
+      return {
+        type: "GreaterThan",
+        clauses: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): GreaterThan {
+      return new GreaterThan(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
+    }
   }
 
   export class GreaterThanOrEqual implements Expr {
@@ -435,6 +561,19 @@ export namespace SMT {
     public static get parser(): P.IParser<GreaterThanOrEqual> {
       return opParser(">=", (es) => new GreaterThanOrEqual(es));
     }
+
+    public get serialized(): object {
+      return {
+        type: "GreaterThanOrEqual",
+        clauses: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): GreaterThanOrEqual {
+      return new GreaterThanOrEqual(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
+    }
   }
 
   export class Let implements Expr {
@@ -449,6 +588,24 @@ export namespace SMT {
     constructor(bindings: [Var, Expr][], body: Expr) {
       this.bindings = bindings;
       this.body = body;
+    }
+
+    public get serialized(): object {
+      return {
+        type: "Let",
+        bindings: this.bindings.map(([v, e]) => [v.serialized, e.serialized]),
+        body: this.body.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): Let {
+      return new Let(
+        (json["bindings"] as [JSONObject, JSONObject][]).map(([v, e]) => [
+          Var.deserialize(v),
+          deserializeExpr(e),
+        ]),
+        deserializeExpr(json["body"])
+      );
     }
 
     public get formula(): string {
@@ -517,6 +674,23 @@ export namespace SMT {
       this.whenFalse = whenFalse;
     }
 
+    public get serialized(): object {
+      return {
+        type: "IfThenElse",
+        cond: this.cond.serialized,
+        whenTrue: this.whenTrue.serialized,
+        whenFalse: this.whenFalse.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): IfThenElse {
+      return new IfThenElse(
+        deserializeExpr(json["cond"]),
+        deserializeExpr(json["whenTrue"]),
+        deserializeExpr(json["whenFalse"])
+      );
+    }
+
     public get formula(): string {
       return (
         "(ite " +
@@ -568,6 +742,17 @@ export namespace SMT {
     public get formula(): string {
       return "(assert " + this.clause.formula + ")";
     }
+
+    public get serialized(): object {
+      return {
+        type: "Assert",
+        clause: this.clause.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): Assert {
+      return new Assert(deserializeExpr(json["clause"]));
+    }
   }
 
   export class FunctionDeclaration implements Expr {
@@ -600,6 +785,23 @@ export namespace SMT {
         ")"
       );
     }
+
+    public get serialized(): object {
+      return {
+        type: "FunctionDeclaration",
+        name: this.name,
+        paramSortList: this.paramSortList.map((s) => s.serialized),
+        returnSort: this.returnSort.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): FunctionDeclaration {
+      return new FunctionDeclaration(
+        json["name"] as string,
+        (json["name"] as JSONObject[]).map((s) => deserializeSort(s)),
+        deserializeSort(json["returnSort"])
+      );
+    }
   }
 
   export class FunctionDefinition implements Expr {
@@ -625,6 +827,27 @@ export namespace SMT {
       this.parameterList = parameterList;
       this.returnSort = returnSort;
       this.impl = impl;
+    }
+
+    public get serialized(): object {
+      return {
+        type: "FunctionDefinition",
+        name: this.name,
+        parameterList: this.parameterList.map((decl) => decl.serialized),
+        returnSort: this.returnSort.serialized,
+        impl: this.impl.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): FunctionDefinition {
+      return new FunctionDefinition(
+        json["name"] as string,
+        (json["parameterList"] as JSONObject[]).map((e) =>
+          ArgumentDeclaration.deserialize(e)
+        ),
+        deserializeSort(json["returnSort"]),
+        deserializeExpr(json["impl"])
+      );
     }
 
     public get formula(): string {
@@ -704,6 +927,21 @@ export namespace SMT {
     public get formula(): string {
       return "(declare-datatype " + this.name + " (" + this.impl.formula + "))";
     }
+
+    public get serialized(): object {
+      return {
+        type: "DataTypeDeclaration",
+        name: this.name,
+        impl: this.impl.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): DataTypeDeclaration {
+      return new DataTypeDeclaration(
+        json["name"] as string,
+        deserializeExpr(json["impl"])
+      );
+    }
   }
 
   export class ConstantDeclaration implements Expr {
@@ -722,6 +960,21 @@ export namespace SMT {
 
     public get formula(): string {
       return "(declare-const " + this.name + " " + this.sort.name + ")";
+    }
+
+    public get serialized(): object {
+      return {
+        type: "ConstantDeclaration",
+        name: this.name,
+        sort: this.sort.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): ConstantDeclaration {
+      return new ConstantDeclaration(
+        json["name"] as string,
+        deserializeSort(json["sort"])
+      );
     }
   }
 
@@ -774,6 +1027,21 @@ export namespace SMT {
         P.many(P.left(declSingle)(P.ws))
       );
     }
+
+    public get serialized(): object {
+      return {
+        type: "ArgumentDeclaration",
+        name: this.name,
+        sort: this.sort.serialized,
+      };
+    }
+
+    public static deserialize(json: JSONObject): ArgumentDeclaration {
+      return new ArgumentDeclaration(
+        json["name"] as string,
+        deserializeSort(json["sort"] as JSONObject)
+      );
+    }
   }
 
   export class FunctionApplication implements Expr {
@@ -811,6 +1079,21 @@ export namespace SMT {
         )
       )(([name, args]) => new FunctionApplication(name.toString(), args));
     }
+
+    public get serialized(): object {
+      return {
+        type: "FunctionApplication",
+        name: this.name,
+        args: this.args.map((a) => a.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): FunctionApplication {
+      return new FunctionApplication(
+        json["name"] as string,
+        (json["args"] as JSONObject[]).map((e) => deserializeExpr(e))
+      );
+    }
   }
 
   export class Var implements Expr {
@@ -832,6 +1115,17 @@ export namespace SMT {
       return P.pipe<CU.CharStream, Var>(identifier)(
         (v) => new Var(v.toString())
       );
+    }
+
+    public get serialized(): object {
+      return {
+        type: "Var",
+        name: this.name,
+      };
+    }
+
+    public static deserialize(json: JSONObject): Var {
+      return new Var(json["name"] as string);
     }
   }
 
@@ -855,6 +1149,19 @@ export namespace SMT {
     public static get parser(): P.IParser<Model> {
       return par(
         P.pipe<Expr[], Model>(sepBy1(expr)(P.ws))((es) => new Model(es))
+      );
+    }
+
+    public get serialized(): object {
+      return {
+        type: "Model",
+        exprs: this.exprs.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): Model {
+      return new Model(
+        (json["exprs"] as JSONObject[]).map((e) => deserializeExpr(e))
       );
     }
   }
@@ -881,6 +1188,17 @@ export namespace SMT {
         return new IsSatisfiable(value);
       });
     }
+
+    public get serialized(): object {
+      return {
+        type: "IsSatisfiable",
+        value: this.value,
+      };
+    }
+
+    public static deserialize(json: JSONObject): IsSatisfiable {
+      return new IsSatisfiable(json["value"] as boolean);
+    }
   }
 
   export class CheckSatisfiable implements Expr {
@@ -892,16 +1210,36 @@ export namespace SMT {
     public get formula(): string {
       return "(check-sat)";
     }
+
+    public get serialized(): object {
+      return {
+        type: "CheckSatisfiable",
+      };
+    }
+
+    public static deserialize(json: JSONObject): CheckSatisfiable {
+      return new CheckSatisfiable();
+    }
   }
 
   export class GetModel implements Expr {
-    constructor() {}
-
     /**
      * Represents a Z3 get-model command.
      */
+    constructor() {}
+
     public get formula(): string {
       return "(get-model)";
+    }
+
+    public get serialized(): object {
+      return {
+        type: "GetModel",
+      };
+    }
+
+    public static deserialize(json: JSONObject): GetModel {
+      return new GetModel();
     }
   }
 
@@ -940,6 +1278,17 @@ export namespace SMT {
 
     public static get sortParser(): P.IParser<Sort> {
       return P.pipe<CU.CharStream, Sort>(P.str("Int"))((b) => Int.sort);
+    }
+
+    public get serialized(): object {
+      return {
+        type: "Int",
+        value: this.value,
+      };
+    }
+
+    public static deserialize(json: JSONObject): Int {
+      return new Int(json["value"] as number);
     }
   }
 
@@ -986,6 +1335,17 @@ export namespace SMT {
     public static get sortParser(): P.IParser<Sort> {
       return P.pipe<CU.CharStream, Sort>(P.str("Bool"))((b) => Bool.sort);
     }
+
+    public get serialized(): object {
+      return {
+        type: "Bool",
+        value: this.value,
+      };
+    }
+
+    public static deserialize(json: JSONObject): Bool {
+      return new Bool(json["value"] as boolean);
+    }
   }
 
   /**
@@ -1003,6 +1363,13 @@ export namespace SMT {
       return P.pipe<CU.CharStream, Sort>(identifier)(
         (name) => new PlaceholderSort(name.toString())
       );
+    }
+
+    public get serialized(): object {
+      return {
+        type: "PlaceholderSort",
+        name: this.name,
+      };
     }
   }
 
@@ -1071,6 +1438,104 @@ export namespace SMT {
         return outcome.result;
       case "failure":
         throw new Error("Not a valid SMTLIB program.");
+    }
+  }
+
+  /**
+   * Serializes an AST into JSON.
+   * @param es An array of Exprs.
+   * @returns A JSON object.
+   */
+  export function serialize(es: Expr[]): object {
+    return es.map((e) => e.serialized);
+  }
+
+  export function deserialize(json: object): Expr[] {
+    if (Array.isArray(json)) {
+      const arr = json as JSONObject[];
+      arr.map((e) => deserializeExpr(e));
+    } else {
+      throw new Error(
+        "Valid SMTLIB JSON object must be an outermost array of expressions."
+      );
+    }
+  }
+
+  function deserializeSort(json: JSONObject): Sort {
+    try {
+      switch (json["type"]) {
+        case "Int":
+          return Int.deserialize(json);
+        case "Bool":
+          return Bool.deserialize(json);
+        default:
+          throw new Error("Unrecognized sort '" + json["type"] + "'.");
+      }
+    } catch (e) {
+      throw new Error(
+        "Valid SMTLIB JSON object must have a 'type' field corresponding to an SMTLIB expression."
+      );
+    }
+  }
+
+  function deserializeExpr(json: JSONObject): Expr {
+    try {
+      switch (json["type"]) {
+        case "GetModel":
+          return GetModel.deserialize(json);
+        case "CheckSatisfiable":
+          return CheckSatisfiable.deserialize(json);
+        case "IsSatisfiable":
+          return IsSatisfiable.deserialize(json);
+        case "Model":
+          return Model.deserialize(json);
+        case "Var":
+          return Var.deserialize(json);
+        case "FunctionApplication":
+          return FunctionApplication.deserialize(json);
+        case "ArgumentDeclaration":
+          return ArgumentDeclaration.deserialize(json);
+        case "ConstantDeclaration":
+          return ConstantDeclaration.deserialize(json);
+        case "DataTypeDeclaration":
+          return DataTypeDeclaration.deserialize(json);
+        case "FunctionDefinition":
+          return FunctionDefinition.deserialize(json);
+        case "FunctionDeclaration":
+          return FunctionDeclaration.deserialize(json);
+        case "Assert":
+          return Assert.deserialize(json);
+        case "IfThenElse":
+          return IfThenElse.deserialize(json);
+        case "Let":
+          return Let.deserialize(json);
+        case "GreaterThanOrEqual":
+          return GreaterThanOrEqual.deserialize(json);
+        case "GreaterThan":
+          return GreaterThan.deserialize(json);
+        case "LessThanOrEqual":
+          return LessThanOrEqual.deserialize(json);
+        case "LessThan":
+          return LessThan.deserialize(json);
+        case "Minus":
+          return Minus.deserialize(json);
+        case "Plus":
+          return Plus.deserialize(json);
+        case "Equals":
+          return Equals.deserialize(json);
+        case "Not":
+          return Not.deserialize(json);
+        case "Or":
+          return Or.deserialize(json);
+        case "And":
+          return And.deserialize(json);
+        default:
+          throw new Error("Unrecognized type '" + json["type"] + "'.");
+      }
+    } catch (e) {
+      throw new Error(
+        "Valid SMTLIB JSON object must have a 'type' field corresponding to an SMTLIB expression."
+      );
     }
   }
 }
