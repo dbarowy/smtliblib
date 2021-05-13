@@ -1244,6 +1244,7 @@ export namespace SMT {
   }
 
   // Built-in SMT sorts
+  // FWIW, these do double-duty as sorts and as expressions.
 
   /**
    * Int sort.
@@ -1351,32 +1352,40 @@ export namespace SMT {
   /**
    * Unknown sort
    */
-  export class PlaceholderSort implements Sort {
-    private static sortInstance: Sort = new PlaceholderSort("unknown");
+  export class UserDefinedSort implements Sort {
+    private static sortInstance: Sort = new UserDefinedSort("unknown");
     public name: string;
-    public sort = PlaceholderSort.sortInstance;
-    public static sort = PlaceholderSort.sortInstance;
+    public sort = UserDefinedSort.sortInstance;
+    public static sort = UserDefinedSort.sortInstance;
     constructor(name: string) {
       this.name = name;
     }
     public static get sortParser(): P.IParser<Sort> {
       return P.pipe<CU.CharStream, Sort>(identifier)(
-        (name) => new PlaceholderSort(name.toString())
+        (name) => new UserDefinedSort(name.toString())
       );
+    }
+
+    public static get valueParser(): P.IParser<UserDefinedSort> {
+      throw new Error("Not implemented.");
     }
 
     public get serialized(): object {
       return {
-        type: "PlaceholderSort",
+        type: "UserDefinedSort",
         name: this.name,
       };
+    }
+
+    public static deserialize(json: JSONObject): UserDefinedSort {
+      return new UserDefinedSort(json["name"]);
     }
   }
 
   const sort = P.choices(
     Int.sortParser,
     Bool.sortParser,
-    PlaceholderSort.sortParser
+    UserDefinedSort.sortParser
   );
 
   /**
@@ -1461,6 +1470,23 @@ export namespace SMT {
     }
   }
 
+  function deserializeLiteral(json: JSONObject): Expr {
+    try {
+      switch (json["type"]) {
+        case "Int":
+          return Int.deserialize(json);
+        case "Bool":
+          return Bool.deserialize(json);
+        default:
+          throw new Error("Unrecognized sort '" + json["type"] + "'.");
+      }
+    } catch (e) {
+      throw new Error(
+        "Valid SMTLIB JSON object must have a 'type' field corresponding to an SMTLIB expression."
+      );
+    }
+  }
+
   function deserializeSort(json: JSONObject): Sort {
     try {
       switch (json["type"]) {
@@ -1468,6 +1494,8 @@ export namespace SMT {
           return Int.deserialize(json);
         case "Bool":
           return Bool.deserialize(json);
+        case "UserDefinedSort":
+          return UserDefinedSort.deserialize(json);
         default:
           throw new Error("Unrecognized sort '" + json["type"] + "'.");
       }
@@ -1530,11 +1558,17 @@ export namespace SMT {
         case "And":
           return And.deserialize(json);
         default:
-          throw new Error("Unrecognized type '" + json["type"] + "'.");
+          // is it a literal?
+          try {
+            return deserializeLiteral(json);
+          } catch (e) {
+            throw new Error("Unrecognized type '" + json["type"] + "'.");
+          }
       }
     } catch (e) {
       throw new Error(
-        "Valid SMTLIB JSON object must have a 'type' field corresponding to an SMTLIB expression."
+        "Valid SMTLIB JSON object must have a 'type' field corresponding to an SMTLIB expression: " +
+          e.toString()
       );
     }
   }

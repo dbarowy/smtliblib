@@ -392,7 +392,7 @@ describe("FunctionDefinition", () => {
       "(define-fun SomeComplicatedFunction ((x!0 Column) (x!1 Column)) Column 456)"
     );
     const output = SMT.FunctionDefinition.parser(input);
-    const colSort = new SMT.PlaceholderSort("Column");
+    const colSort = new SMT.UserDefinedSort("Column");
     const expected = new SMT.FunctionDefinition(
       "SomeComplicatedFunction",
       [
@@ -546,7 +546,7 @@ sat
           new SMT.FunctionDefinition(
             "c2",
             [],
-            new SMT.PlaceholderSort("Cell"),
+            new SMT.UserDefinedSort("Cell"),
             new SMT.FunctionApplication("cell", [
               new SMT.Int(1),
               new SMT.Int(10),
@@ -577,7 +577,7 @@ sat
           new SMT.FunctionDefinition(
             "c2",
             [],
-            new SMT.PlaceholderSort("Cell"),
+            new SMT.UserDefinedSort("Cell"),
             new SMT.FunctionApplication("cell", [
               new SMT.Int(1),
               new SMT.Int(10),
@@ -586,7 +586,7 @@ sat
           new SMT.FunctionDefinition(
             "c1",
             [],
-            new SMT.PlaceholderSort("Cell"),
+            new SMT.UserDefinedSort("Cell"),
             new SMT.FunctionApplication("cell", [
               new SMT.Int(1),
               new SMT.Int(9),
@@ -618,7 +618,7 @@ sat
           new SMT.FunctionDefinition(
             "c2",
             [],
-            new SMT.PlaceholderSort("Cell"),
+            new SMT.UserDefinedSort("Cell"),
             new SMT.FunctionApplication("cell", [
               new SMT.Int(1),
               new SMT.Int(10),
@@ -627,7 +627,7 @@ sat
           new SMT.FunctionDefinition(
             "c1",
             [],
-            new SMT.PlaceholderSort("Cell"),
+            new SMT.UserDefinedSort("Cell"),
             new SMT.FunctionApplication("cell", [
               new SMT.Int(1),
               new SMT.Int(9),
@@ -638,11 +638,11 @@ sat
             [
               new SMT.ArgumentDeclaration(
                 "x!0",
-                new SMT.PlaceholderSort("Column")
+                new SMT.UserDefinedSort("Column")
               ),
               new SMT.ArgumentDeclaration(
                 "x!1",
-                new SMT.PlaceholderSort("Column")
+                new SMT.UserDefinedSort("Column")
               ),
             ],
             SMT.Bool.sort,
@@ -782,6 +782,27 @@ describe("Serialization", () => {
       const jsonObj = JSON.parse(jsonStr);
       const output2 = SMT.deserialize(jsonObj);
       expect(output2).to.eql(output);
+    } catch (e) {
+      assert.fail();
+    }
+  });
+
+  it("should handle user defined sorts", () => {
+    try {
+      const input = "(define-fun foo () Foo 1)";
+      const output = SMT.parse(input);
+      const expected = [
+        new SMT.FunctionDefinition(
+          "foo",
+          [],
+          new SMT.UserDefinedSort("Foo"),
+          new SMT.Int(1)
+        ),
+      ];
+      const output2 = SMT.deserialize(
+        JSON.parse(JSON.stringify(SMT.serialize(output)))
+      );
+      expect(output2).to.eql(expected);
     } catch (e) {
       assert.fail();
     }
