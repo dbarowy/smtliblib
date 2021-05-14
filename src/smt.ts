@@ -336,7 +336,7 @@ export namespace SMT {
     public get serialized(): object {
       return {
         type: "Not",
-        clauses: this.clause.serialized,
+        clause: this.clause.serialized,
       };
     }
 
