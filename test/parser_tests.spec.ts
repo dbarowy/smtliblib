@@ -807,4 +807,19 @@ describe("Serialization", () => {
       assert.fail();
     }
   });
+
+  it("should correctly serialize and deserialize all data from a real Z3 run", () => {
+    try {
+      const input = fs.readFileSync("test/z3-model-output-test-4.smt", "utf8");
+      const output = SMT.parse(input);
+      const json = SMT.serialize(output);
+      const str = JSON.stringify(json);
+      const json2 = JSON.parse(str);
+      const output2 = SMT.deserialize(json2);
+      expect(output2).to.eql(output);
+    } catch (e) {
+      console.log(e);
+      assert.fail(e);
+    }
+  });
 });
