@@ -178,6 +178,11 @@ function opPretty(op: string, clauses: Expr[]): string {
 
 export interface Expr {
   /**
+   * The type of the expression.
+   */
+  type: string;
+
+  /**
    * Emit a formula string for this expression. Generally, this
    * formula should be an application and not a declaration.
    * Use a decl getter property for declarations.
@@ -245,6 +250,7 @@ export namespace SMT {
   const reservedWords = new Set(["true", "false", "sat", "unsat"]);
 
   export class And implements Expr {
+    public readonly type = "And";
     public readonly clauses: Expr[];
 
     /**
@@ -265,7 +271,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "And",
+        type: this.type,
         clauses: this.clauses.map((e) => e.serialized),
       };
     }
@@ -278,6 +284,7 @@ export namespace SMT {
   }
 
   export class Or implements Expr {
+    public readonly type = "Or";
     public readonly clauses: Expr[];
 
     /**
@@ -298,7 +305,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Or",
+        type: this.type,
         clauses: this.clauses.map((e) => e.serialized),
       };
     }
@@ -311,6 +318,7 @@ export namespace SMT {
   }
 
   export class Not implements Expr {
+    public readonly type = "Not";
     public readonly clause: Expr;
 
     /**
@@ -335,7 +343,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Not",
+        type: this.type,
         clause: this.clause.serialized,
       };
     }
@@ -346,6 +354,7 @@ export namespace SMT {
   }
 
   export class Equals implements Expr {
+    public readonly type = "Equals";
     public readonly terms: Expr[];
 
     /**
@@ -366,7 +375,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Equals",
+        type: this.type,
         terms: this.terms.map((e) => e.serialized),
       };
     }
@@ -379,6 +388,7 @@ export namespace SMT {
   }
 
   export class Plus implements Expr {
+    public readonly type = "Plus";
     public readonly terms: Expr[];
 
     /**
@@ -399,7 +409,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Plus",
+        type: this.type,
         terms: this.terms.map((e) => e.serialized),
       };
     }
@@ -412,6 +422,7 @@ export namespace SMT {
   }
 
   export class Minus implements Expr {
+    public readonly type = "Minus";
     public readonly terms: Expr[];
 
     /**
@@ -432,7 +443,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Minus",
+        type: this.type,
         terms: this.terms.map((e) => e.serialized),
       };
     }
@@ -445,6 +456,7 @@ export namespace SMT {
   }
 
   export class LessThan implements Expr {
+    public readonly type = "LessThan";
     public readonly terms: Expr[];
 
     /**
@@ -465,7 +477,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "LessThan",
+        type: this.type,
         terms: this.terms.map((e) => e.serialized),
       };
     }
@@ -478,6 +490,7 @@ export namespace SMT {
   }
 
   export class LessThanOrEqual implements Expr {
+    public readonly type = "LessThanOrEqual";
     public readonly terms: Expr[];
 
     /**
@@ -498,7 +511,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "LessThanOrEqual",
+        type: this.type,
         terms: this.terms.map((e) => e.serialized),
       };
     }
@@ -511,6 +524,7 @@ export namespace SMT {
   }
 
   export class GreaterThan implements Expr {
+    public readonly type = "GreaterThan";
     public readonly terms: Expr[];
 
     /**
@@ -531,7 +545,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "GreaterThan",
+        type: this.type,
         terms: this.terms.map((e) => e.serialized),
       };
     }
@@ -544,6 +558,7 @@ export namespace SMT {
   }
 
   export class GreaterThanOrEqual implements Expr {
+    public readonly type = "GreaterThanOrEqual";
     public readonly terms: Expr[];
 
     /**
@@ -564,7 +579,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "GreaterThanOrEqual",
+        type: this.type,
         terms: this.terms.map((e) => e.serialized),
       };
     }
@@ -577,6 +592,7 @@ export namespace SMT {
   }
 
   export class Let implements Expr {
+    public readonly type = "Let";
     public readonly bindings: [Var, Expr][];
     public readonly body: Expr;
 
@@ -592,7 +608,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Let",
+        type: this.type,
         bindings: this.bindings.map(([v, e]) => [v.serialized, e.serialized]),
         body: this.body.serialized,
       };
@@ -658,6 +674,7 @@ export namespace SMT {
   }
 
   export class IfThenElse implements Expr {
+    public readonly type = "IfThenElse";
     public readonly cond: Expr;
     public readonly whenTrue: Expr;
     public readonly whenFalse: Expr;
@@ -676,7 +693,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "IfThenElse",
+        type: this.type,
         cond: this.cond.serialized,
         whenTrue: this.whenTrue.serialized,
         whenFalse: this.whenFalse.serialized,
@@ -729,6 +746,7 @@ export namespace SMT {
   }
 
   export class Assert implements Expr {
+    public readonly type = "Assert";
     public readonly clause: Expr;
 
     /**
@@ -745,7 +763,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Assert",
+        type: this.type,
         clause: this.clause.serialized,
       };
     }
@@ -756,6 +774,7 @@ export namespace SMT {
   }
 
   export class FunctionDeclaration implements Expr {
+    public readonly type = "FunctionDeclaration";
     public readonly name: string;
     public readonly paramSortList: Sort[];
     public readonly returnSort: Sort;
@@ -788,7 +807,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "FunctionDeclaration",
+        type: this.type,
         name: this.name,
         paramSortList: this.paramSortList.map((s) => s.serialized),
         returnSort: this.returnSort.serialized,
@@ -805,6 +824,7 @@ export namespace SMT {
   }
 
   export class FunctionDefinition implements Expr {
+    public readonly type = "FunctionDefinition";
     public readonly name: string;
     public readonly parameterList: SMT.ArgumentDeclaration[];
     public readonly returnSort: Sort;
@@ -831,7 +851,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "FunctionDefinition",
+        type: this.type,
         name: this.name,
         parameterList: this.parameterList.map((decl) => decl.serialized),
         returnSort: this.returnSort.serialized,
@@ -911,6 +931,7 @@ export namespace SMT {
   }
 
   export class DataTypeDeclaration implements Expr {
+    public readonly type = "DataTypeDeclaration";
     public readonly name: string;
     public readonly impl: Expr;
 
@@ -930,7 +951,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "DataTypeDeclaration",
+        type: this.type,
         name: this.name,
         impl: this.impl.serialized,
       };
@@ -945,6 +966,7 @@ export namespace SMT {
   }
 
   export class ConstantDeclaration implements Expr {
+    public readonly type = "ConstantDeclaration";
     public readonly name: string;
     public readonly sort: Sort;
 
@@ -964,7 +986,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "ConstantDeclaration",
+        type: this.type,
         name: this.name,
         sort: this.sort.serialized,
       };
@@ -979,6 +1001,7 @@ export namespace SMT {
   }
 
   export class ArgumentDeclaration implements Expr {
+    public readonly type = "ArgumentDeclaration";
     public readonly name: string;
     public readonly sort: Sort;
 
@@ -1030,7 +1053,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "ArgumentDeclaration",
+        type: this.type,
         name: this.name,
         sort: this.sort.serialized,
       };
@@ -1045,6 +1068,7 @@ export namespace SMT {
   }
 
   export class FunctionApplication implements Expr {
+    public readonly type = "FunctionApplication";
     public readonly name: string;
     public readonly args: Expr[];
 
@@ -1082,7 +1106,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "FunctionApplication",
+        type: this.type,
         name: this.name,
         args: this.args.map((a) => a.serialized),
       };
@@ -1097,6 +1121,7 @@ export namespace SMT {
   }
 
   export class Var implements Expr {
+    public readonly type = "Var";
     public readonly name: string;
 
     /**
@@ -1119,7 +1144,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Var",
+        type: this.type,
         name: this.name,
       };
     }
@@ -1130,6 +1155,7 @@ export namespace SMT {
   }
 
   export class Model implements Expr {
+    public readonly type = "Model";
     public readonly exprs: Expr[];
 
     /**
@@ -1154,7 +1180,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Model",
+        type: this.type,
         exprs: this.exprs.map((e) => e.serialized),
       };
     }
@@ -1167,6 +1193,7 @@ export namespace SMT {
   }
 
   export class IsSatisfiable implements Expr {
+    public readonly type = "IsSatisfiable";
     public value: boolean;
 
     /**
@@ -1191,7 +1218,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "IsSatisfiable",
+        type: this.type,
         value: this.value,
       };
     }
@@ -1202,6 +1229,8 @@ export namespace SMT {
   }
 
   export class CheckSatisfiable implements Expr {
+    public readonly type = "CheckSatisfiable";
+
     /**
      * Represents a Z3 check-sat command.
      */
@@ -1213,7 +1242,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "CheckSatisfiable",
+        type: this.type,
       };
     }
 
@@ -1223,6 +1252,8 @@ export namespace SMT {
   }
 
   export class GetModel implements Expr {
+    public readonly type = "GetModel";
+
     /**
      * Represents a Z3 get-model command.
      */
@@ -1234,7 +1265,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "GetModel",
+        type: this.type,
       };
     }
 
@@ -1250,6 +1281,7 @@ export namespace SMT {
    * Int sort.
    */
   export class Int implements Sort, Expr {
+    public readonly type = "Int";
     public value: number;
     private static sortInstance: Sort = new Int(0);
 
@@ -1283,7 +1315,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Int",
+        type: this.type,
         value: this.value,
       };
     }
@@ -1297,6 +1329,7 @@ export namespace SMT {
    * Bool sort.
    */
   export class Bool implements Expr, Sort {
+    public readonly type = "Bool";
     public value: boolean;
     private static sortInstance: Sort = new Bool(true);
 
@@ -1339,7 +1372,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "Bool",
+        type: this.type,
         value: this.value,
       };
     }
@@ -1353,6 +1386,7 @@ export namespace SMT {
    * Unknown sort
    */
   export class UserDefinedSort implements Sort {
+    public readonly type = "UserDefinedSort";
     private static sortInstance: Sort = new UserDefinedSort("unknown");
     public name: string;
     public sort = UserDefinedSort.sortInstance;
@@ -1372,7 +1406,7 @@ export namespace SMT {
 
     public get serialized(): object {
       return {
-        type: "UserDefinedSort",
+        type: this.type,
         name: this.name,
       };
     }
