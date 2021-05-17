@@ -823,3 +823,16 @@ describe("Serialization", () => {
     }
   });
 });
+
+describe("Pattern matching on expressions", () => {
+  it("should work", () => {
+    const e = new SMT.Plus([new SMT.Var("a"), new SMT.Int(3)]);
+    switch (e.type) {
+      case "Plus":
+        assert(true);
+        break;
+      default:
+        assert.fail();
+    }
+  });
+});
