@@ -33,36 +33,45 @@ will produce an AST that looks something like:
 
 ```
 [
-   {
-      "name":"plus",
-      "parameterList":[
-         {
-            "name":"a",
-            "sort":{
-               "value":0
-            }
-         },
-         {
-            "name":"b",
-            "sort":{
-               "value":0
-            }
-         }
-      ],
-      "returnSort":{
-         "value":0
+  {
+    "type":"FunctionDefinition",
+    "name":"plus",
+    "parameterList":[
+      {
+        "type":"ArgumentDeclaration",
+        "name":"a",
+        "sort":{
+          "type":"Int",
+          "value":0
+        }
       },
-      "impl":{
-         "terms":[
-            {
-               "name":"a"
-            },
-            {
-               "name":"b"
-            }
-         ]
+      {
+        "type":"ArgumentDeclaration",
+        "name":"b",
+        "sort":{
+          "type":"Int",
+          "value":0
+        }
       }
-   }
+    ],
+    "returnSort":{
+      "type":"Int",
+      "value":0
+    },
+    "impl":{
+      "type":"Plus",
+      "terms":[
+        {
+          "type":"Var",
+          "name":"a"
+        },
+        {
+          "type":"Var",
+          "name":"b"
+        }
+      ]
+    }
+  }
 ]
 ```
 

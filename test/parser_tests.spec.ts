@@ -4,10 +4,13 @@ import { assert, Assertion, expect } from "chai";
 import "mocha";
 import * as fs from "fs";
 
+// needed for tests that use generators
+require('mocha-generators').install();
+
 describe("Identifier", () => {
-  it('should parse "foo"', () => {
+  it('should parse "foo"', function* () {
     const input = new CU.CharStream("foo");
-    const output = SMT.identifier(input);
+    const output = yield* SMT.identifier(input);
     const expected = new CU.CharStream("foo");
     switch (output.tag) {
       case "success":
@@ -18,9 +21,9 @@ describe("Identifier", () => {
     }
   });
 
-  it('should parse "x!0"', () => {
+  it('should parse "x!0"', function* () {
     const input = new CU.CharStream("x!0");
-    const output = SMT.identifier(input);
+    const output = yield* SMT.identifier(input);
     const expected = new CU.CharStream("x!0");
     switch (output.tag) {
       case "success":
@@ -31,9 +34,9 @@ describe("Identifier", () => {
     }
   });
 
-  it('should fail on "2bad"', () => {
+  it('should fail on "2bad"', function* () {
     const input = new CU.CharStream("2bad");
-    const output = SMT.identifier(input);
+    const output = yield* SMT.identifier(input);
     switch (output.tag) {
       case "success":
         assert.fail();
@@ -44,9 +47,9 @@ describe("Identifier", () => {
 });
 
 describe("IsSatisfiable", () => {
-  it("should parse 'sat'", () => {
+  it("should parse 'sat'", function* () {
     const input = new CU.CharStream("sat");
-    const output = SMT.IsSatisfiable.parser(input);
+    const output = yield* SMT.IsSatisfiable.parser(input);
     const expected = new SMT.IsSatisfiable(true);
     switch (output.tag) {
       case "success":
@@ -59,9 +62,9 @@ describe("IsSatisfiable", () => {
 });
 
 describe("Bool", () => {
-  it("should parse 'true'", () => {
+  it("should parse 'true'", function* () {
     const input = new CU.CharStream("true");
-    const output = SMT.Bool.valueParser(input);
+    const output = yield* SMT.Bool.valueParser(input);
     const expected = new SMT.Bool(true);
     switch (output.tag) {
       case "success":
@@ -72,9 +75,9 @@ describe("Bool", () => {
     }
   });
 
-  it("should parse 'false'", () => {
+  it("should parse 'false'", function* () {
     const input = new CU.CharStream("false");
-    const output = SMT.Bool.valueParser(input);
+    const output = yield* SMT.Bool.valueParser(input);
     const expected = new SMT.Bool(false);
     switch (output.tag) {
       case "success":
@@ -87,9 +90,9 @@ describe("Bool", () => {
 });
 
 describe("Var", () => {
-  it("should parse 'x'", () => {
+  it("should parse 'x'", function* () {
     const input = new CU.CharStream("x");
-    const output = SMT.Var.parser(input);
+    const output = yield* SMT.Var.parser(input);
     const expected = new SMT.Var("x");
     switch (output.tag) {
       case "success":
@@ -102,9 +105,9 @@ describe("Var", () => {
 });
 
 describe("Let", () => {
-  it("should parse a basic let expression", () => {
+  it("should parse a basic let expression", function* () {
     const input = new CU.CharStream("(let ((x 2)) 1)");
-    const output = SMT.Let.parser(input);
+    const output = yield* SMT.Let.parser(input);
     const expected = new SMT.Let(
       [[new SMT.Var("x"), new SMT.Int(2)]],
       new SMT.Int(1)
@@ -120,9 +123,9 @@ describe("Let", () => {
 });
 
 describe("Equals", () => {
-  it("should parse an = expression", () => {
+  it("should parse an = expression", function* () {
     const input = new CU.CharStream("(= 1 2)");
-    const output = SMT.Equals.parser(input);
+    const output = yield* SMT.Equals.parser(input);
     const expected = new SMT.Equals([new SMT.Int(1), new SMT.Int(2)]);
     switch (output.tag) {
       case "success":
@@ -135,9 +138,9 @@ describe("Equals", () => {
 });
 
 describe("And", () => {
-  it("should parse a basic and expression", () => {
+  it("should parse a basic and expression", function* () {
     const input = new CU.CharStream("(and (= 1 2) (= 2 1))");
-    const output = SMT.And.parser(input);
+    const output = yield* SMT.And.parser(input);
     const expected = new SMT.And([
       new SMT.Equals([new SMT.Int(1), new SMT.Int(2)]),
       new SMT.Equals([new SMT.Int(2), new SMT.Int(1)]),
@@ -153,9 +156,9 @@ describe("And", () => {
 });
 
 describe("Or", () => {
-  it("should parse a basic or expression", () => {
+  it("should parse a basic or expression", function* () {
     const input = new CU.CharStream("(or (= 1 2) (= 2 1))");
-    const output = SMT.Or.parser(input);
+    const output = yield* SMT.Or.parser(input);
     const expected = new SMT.Or([
       new SMT.Equals([new SMT.Int(1), new SMT.Int(2)]),
       new SMT.Equals([new SMT.Int(2), new SMT.Int(1)]),
@@ -171,9 +174,9 @@ describe("Or", () => {
 });
 
 describe("Plus", () => {
-  it("should parse a basic + expression", () => {
+  it("should parse a basic + expression", function* () {
     const input = new CU.CharStream("(+ 1 2)");
-    const output = SMT.Plus.parser(input);
+    const output = yield* SMT.Plus.parser(input);
     const expected = new SMT.Plus([new SMT.Int(1), new SMT.Int(2)]);
     switch (output.tag) {
       case "success":
@@ -186,9 +189,9 @@ describe("Plus", () => {
 });
 
 describe("Minus", () => {
-  it("should parse a basic - expression", () => {
+  it("should parse a basic - expression", function* () {
     const input = new CU.CharStream("(- 1 2)");
-    const output = SMT.Minus.parser(input);
+    const output = yield* SMT.Minus.parser(input);
     const expected = new SMT.Minus([new SMT.Int(1), new SMT.Int(2)]);
     switch (output.tag) {
       case "success":
@@ -201,9 +204,9 @@ describe("Minus", () => {
 });
 
 describe("LessThan", () => {
-  it("should parse a basic < expression", () => {
+  it("should parse a basic < expression", function* () {
     const input = new CU.CharStream("(< 1 2)");
-    const output = SMT.LessThan.parser(input);
+    const output = yield* SMT.LessThan.parser(input);
     const expected = new SMT.LessThan([new SMT.Int(1), new SMT.Int(2)]);
     switch (output.tag) {
       case "success":
@@ -216,9 +219,9 @@ describe("LessThan", () => {
 });
 
 describe("LessThanOrEqual", () => {
-  it("should parse a basic <= expression", () => {
+  it("should parse a basic <= expression", function* () {
     const input = new CU.CharStream("(<= 1 2)");
-    const output = SMT.LessThanOrEqual.parser(input);
+    const output = yield* SMT.LessThanOrEqual.parser(input);
     const expected = new SMT.LessThanOrEqual([new SMT.Int(1), new SMT.Int(2)]);
     switch (output.tag) {
       case "success":
@@ -229,14 +232,14 @@ describe("LessThanOrEqual", () => {
     }
   });
 
-  it("should parse something a little more complex", () => {
+  it("should parse something a little more complex", function* () {
     // const input = new CU.CharStream(
     //   "(<= (x (upperleft x!0)) (x (bottomright x!1)))"
     // );
     const input = new CU.CharStream(
       "(<= (x (upperleft x!0)) (x (bottomright x!1)) ))"
     );
-    const output = SMT.LessThanOrEqual.parser(input);
+    const output = yield* SMT.LessThanOrEqual.parser(input);
     const expected = new SMT.LessThanOrEqual([
       new SMT.FunctionApplication("x", [
         new SMT.FunctionApplication("upperleft", [new SMT.Var("x!0")]),
@@ -256,9 +259,9 @@ describe("LessThanOrEqual", () => {
 });
 
 describe("GreaterThan", () => {
-  it("should parse a basic > expression", () => {
+  it("should parse a basic > expression", function* () {
     const input = new CU.CharStream("(> 1 2)");
-    const output = SMT.GreaterThan.parser(input);
+    const output = yield* SMT.GreaterThan.parser(input);
     const expected = new SMT.GreaterThan([new SMT.Int(1), new SMT.Int(2)]);
     switch (output.tag) {
       case "success":
@@ -271,9 +274,9 @@ describe("GreaterThan", () => {
 });
 
 describe("GreaterThanOrEqual", () => {
-  it("should parse a basic >= expression", () => {
+  it("should parse a basic >= expression", function* () {
     const input = new CU.CharStream("(>= 1 2)");
-    const output = SMT.GreaterThanOrEqual.parser(input);
+    const output = yield* SMT.GreaterThanOrEqual.parser(input);
     const expected = new SMT.GreaterThanOrEqual([
       new SMT.Int(1),
       new SMT.Int(2),
@@ -289,9 +292,9 @@ describe("GreaterThanOrEqual", () => {
 });
 
 describe("IfThenElse", () => {
-  it("should parse an ite expression", () => {
+  it("should parse an ite expression", function* () {
     const input = new CU.CharStream("(ite (= 1 2) false true)");
-    const output = SMT.IfThenElse.parser(input);
+    const output = yield* SMT.IfThenElse.parser(input);
     const expected = new SMT.IfThenElse(
       new SMT.Equals([new SMT.Int(1), new SMT.Int(2)]),
       new SMT.Bool(false),
@@ -308,9 +311,9 @@ describe("IfThenElse", () => {
 });
 
 describe("ArgumentDeclaration", () => {
-  it("should handle a basic argument declaration", () => {
+  it("should handle a basic argument declaration", function* () {
     const input = new CU.CharStream("((x Bool))");
-    const output = SMT.ArgumentDeclaration.parser(input);
+    const output = yield* SMT.ArgumentDeclaration.parser(input);
     switch (output.tag) {
       case "success":
         expect(output.result[0].name).to.equal("x");
@@ -321,9 +324,9 @@ describe("ArgumentDeclaration", () => {
     }
   });
 
-  it("should handle a multiple argument declaration", () => {
+  it("should handle a multiple argument declaration", function* () {
     const input = new CU.CharStream("((x Bool) (y Column) (z Int))");
-    const output = SMT.ArgumentDeclaration.parser(input);
+    const output = yield* SMT.ArgumentDeclaration.parser(input);
     switch (output.tag) {
       case "success":
         expect(output.result[0].name).to.equal("x");
@@ -338,9 +341,9 @@ describe("ArgumentDeclaration", () => {
     }
   });
 
-  it("should handle a Z3-style argument declaration", () => {
+  it("should handle a Z3-style argument declaration", function* () {
     const input = new CU.CharStream("((x!0 Bool) (x!1 Column) (x!2 Int))");
-    const output = SMT.ArgumentDeclaration.parser(input);
+    const output = yield* SMT.ArgumentDeclaration.parser(input);
     switch (output.tag) {
       case "success":
         expect(output.result[0].name).to.equal("x!0");
@@ -355,9 +358,9 @@ describe("ArgumentDeclaration", () => {
     }
   });
 
-  it("should handle an empty declaration", () => {
+  it("should handle an empty declaration", function* () {
     const input = new CU.CharStream("()");
-    const output = SMT.ArgumentDeclaration.parser(input);
+    const output = yield* SMT.ArgumentDeclaration.parser(input);
     switch (output.tag) {
       case "success":
         expect(output.result.length).to.equal(0);
@@ -368,10 +371,10 @@ describe("ArgumentDeclaration", () => {
   });
 });
 
-describe("FunctionDefinition", () => {
-  it("should parse a basic function definition", () => {
+describe("FunctionDefinition", function* () {
+  it("should parse a basic function definition", function* () {
     const input = new CU.CharStream("(define-fun foo () Bool true)");
-    const output = SMT.FunctionDefinition.parser(input);
+    const output = yield* SMT.FunctionDefinition.parser(input);
     const expected = new SMT.FunctionDefinition(
       "foo",
       [],
@@ -387,11 +390,11 @@ describe("FunctionDefinition", () => {
     }
   });
 
-  it("should parse a basic function definition with args", () => {
+  it("should parse a basic function definition with args", function* () {
     const input = new CU.CharStream(
       "(define-fun SomeComplicatedFunction ((x!0 Column) (x!1 Column)) Column 456)"
     );
-    const output = SMT.FunctionDefinition.parser(input);
+    const output = yield* SMT.FunctionDefinition.parser(input);
     const colSort = new SMT.UserDefinedSort("Column");
     const expected = new SMT.FunctionDefinition(
       "SomeComplicatedFunction",
@@ -413,9 +416,9 @@ describe("FunctionDefinition", () => {
 });
 
 describe("FunctionApplication", () => {
-  it("should parse a basic function application", () => {
+  it("should parse a basic function application", function* () {
     const input = new CU.CharStream("(x 1)");
-    const output = SMT.FunctionApplication.parser(input);
+    const output = yield* SMT.FunctionApplication.parser(input);
     const expected = new SMT.FunctionApplication("x", [new SMT.Int(1)]);
     switch (output.tag) {
       case "success":
@@ -426,9 +429,9 @@ describe("FunctionApplication", () => {
     }
   });
 
-  it("should parse a basic function application with a weird variable", () => {
+  it("should parse a basic function application with a weird variable", function* () {
     const input = new CU.CharStream("(upperleft x!0)");
-    const output = SMT.FunctionApplication.parser(input);
+    const output = yield* SMT.FunctionApplication.parser(input);
     const expected = new SMT.FunctionApplication("upperleft", [
       new SMT.Var("x!0"),
     ]);
@@ -441,9 +444,9 @@ describe("FunctionApplication", () => {
     }
   });
 
-  it("should parse a slightly less basic function application", () => {
+  it("should parse a slightly less basic function application", function* () {
     const input = new CU.CharStream("(cell 1 9)");
-    const output = SMT.FunctionApplication.parser(input);
+    const output = yield* SMT.FunctionApplication.parser(input);
     const expected = new SMT.FunctionApplication("cell", [
       new SMT.Int(1),
       new SMT.Int(9),
@@ -457,9 +460,9 @@ describe("FunctionApplication", () => {
     }
   });
 
-  it("should parse a nested function application", () => {
+  it("should parse a nested function application", function* () {
     const input = new CU.CharStream("(x (upperleft x!0))");
-    const output = SMT.FunctionApplication.parser(input);
+    const output = yield* SMT.FunctionApplication.parser(input);
     const expected = new SMT.FunctionApplication("x", [
       new SMT.FunctionApplication("upperleft", [new SMT.Var("x!0")]),
     ]);
@@ -474,9 +477,9 @@ describe("FunctionApplication", () => {
 });
 
 describe("Model", () => {
-  it("should parse a model definition containing some expression", () => {
+  it("should parse a model definition containing some expression", function* () {
     const input = new CU.CharStream("((cell 1 9))");
-    const output = SMT.Model.parser(input);
+    const output = yield* SMT.Model.parser(input);
     const expected = new SMT.Model([
       new SMT.FunctionApplication("cell", [new SMT.Int(1), new SMT.Int(9)]),
     ]);
@@ -825,7 +828,7 @@ describe("Serialization", () => {
 });
 
 describe("Pattern matching on expressions", () => {
-  it("should work", () => {
+  it("should work", function* () {
     const e = new SMT.Plus([new SMT.Var("a"), new SMT.Int(3)]);
     switch (e.type) {
       case "Plus":

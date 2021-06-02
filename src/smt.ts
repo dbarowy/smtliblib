@@ -1475,12 +1475,18 @@ export namespace SMT {
    */
   export function parse(s: string): Expr[] {
     const input = new CU.CharStream(s);
-    const outcome = grammar(input);
-    switch (outcome.tag) {
-      case "success":
-        return outcome.result;
-      case "failure":
-        throw new Error("Not a valid SMTLIB program.");
+    const it = grammar(input);
+    const elem = it.next();
+    if (elem.done) {
+      const outcome = elem.value;
+      switch (outcome.tag) {
+        case "success":
+          return outcome.result;
+        case "failure":
+          throw new Error("Not a valid SMTLIB program.");
+      }
+    } else {
+      throw new Error("This should never happen.");
     }
   }
 
