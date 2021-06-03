@@ -1499,10 +1499,12 @@ export namespace SMT {
    * Parses an input string into an SMTLIB AST. Throws
    * an exception if parsing fails.
    * @param s A string.
+   * @param debug Print diagnostic information.
    */
-  export function parse(s: string): Expr[] {
+  export function parse(s: string, debug: boolean): Expr[] {
     const input = new CU.CharStream(s);
-    const it = grammar(input);
+    const p = debug ? P.debug(grammar)("SMTLIB") : grammar;
+    const it = p(input);
     const elem = it.next();
     if (elem.done) {
       const outcome = elem.value;
@@ -1510,7 +1512,7 @@ export namespace SMT {
         case "success":
           return outcome.result;
         case "failure":
-          throw new Error("Not a valid SMTLIB program.");
+          throw new Error("Not a valid SMTLIB program:\n" + outcome.error_msg);
       }
     } else {
       throw new Error("This should never happen.");
@@ -1576,53 +1578,53 @@ export namespace SMT {
   function deserializeExpr(json: JSONObject): Expr {
     try {
       switch (json["type"]) {
-        case "GetModel":
+        case GetModel.type:
           return GetModel.deserialize(json);
-        case "CheckSatisfiable":
+        case CheckSatisfiable.type:
           return CheckSatisfiable.deserialize(json);
-        case "IsSatisfiable":
+        case IsSatisfiable.type:
           return IsSatisfiable.deserialize(json);
-        case "Model":
+        case Model.type:
           return Model.deserialize(json);
-        case "Var":
+        case Var.type:
           return Var.deserialize(json);
-        case "FunctionApplication":
+        case FunctionApplication.type:
           return FunctionApplication.deserialize(json);
-        case "ArgumentDeclaration":
+        case ArgumentDeclaration.type:
           return ArgumentDeclaration.deserialize(json);
-        case "ConstantDeclaration":
+        case ConstantDeclaration.type:
           return ConstantDeclaration.deserialize(json);
-        case "DataTypeDeclaration":
+        case DataTypeDeclaration.type:
           return DataTypeDeclaration.deserialize(json);
-        case "FunctionDefinition":
+        case FunctionDefinition.type:
           return FunctionDefinition.deserialize(json);
-        case "FunctionDeclaration":
+        case FunctionDeclaration.type:
           return FunctionDeclaration.deserialize(json);
-        case "Assert":
+        case Assert.type:
           return Assert.deserialize(json);
-        case "IfThenElse":
+        case IfThenElse.type:
           return IfThenElse.deserialize(json);
-        case "Let":
+        case Let.type:
           return Let.deserialize(json);
-        case "GreaterThanOrEqual":
+        case GreaterThanOrEqual.type:
           return GreaterThanOrEqual.deserialize(json);
-        case "GreaterThan":
+        case GreaterThan.type:
           return GreaterThan.deserialize(json);
-        case "LessThanOrEqual":
+        case LessThanOrEqual.type:
           return LessThanOrEqual.deserialize(json);
-        case "LessThan":
+        case LessThan.type:
           return LessThan.deserialize(json);
-        case "Minus":
+        case Minus.type:
           return Minus.deserialize(json);
-        case "Plus":
+        case Plus.type:
           return Plus.deserialize(json);
-        case "Equals":
+        case Equals.type:
           return Equals.deserialize(json);
-        case "Not":
+        case Not.type:
           return Not.deserialize(json);
-        case "Or":
+        case Or.type:
           return Or.deserialize(json);
-        case "And":
+        case And.type:
           return And.deserialize(json);
         default:
           // is it a literal?
