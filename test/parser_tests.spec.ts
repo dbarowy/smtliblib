@@ -496,7 +496,7 @@ describe("Model", () => {
 describe("Grammar", () => {
   it("should parse 'sat'", () => {
     try {
-      const output = SMT.parse("sat");
+      const output = SMT.parse("sat", false);
       const expected = [new SMT.IsSatisfiable(true)];
       expect(output).to.eql(expected);
     } catch (e) {
@@ -506,7 +506,7 @@ describe("Grammar", () => {
 
   it("should parse 'unsat'", () => {
     try {
-      const output = SMT.parse("unsat");
+      const output = SMT.parse("unsat", false);
       const expected = [new SMT.IsSatisfiable(false)];
       expect(output).to.eql(expected);
     } catch (e) {
@@ -516,7 +516,7 @@ describe("Grammar", () => {
 
   it("should parse 'true' as a Bool", () => {
     try {
-      const output = SMT.parse("true");
+      const output = SMT.parse("true", false);
       const expected = [new SMT.Bool(true)];
       expect(output).to.eql(expected);
     } catch (e) {
@@ -526,7 +526,7 @@ describe("Grammar", () => {
 
   it("should parse 'truez' as a Var", () => {
     try {
-      const output = SMT.parse("truez");
+      const output = SMT.parse("truez", false);
       const expected = [new SMT.Var("truez")];
       expect(output).to.eql(expected);
     } catch (e) {
@@ -542,7 +542,7 @@ sat
     (cell 1 10))
 )`.trim();
     try {
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       const expected = [
         new SMT.IsSatisfiable(true),
         new SMT.Model([
@@ -573,7 +573,7 @@ sat
       (cell 1 9))
   )`.trim();
     try {
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       const expected = [
         new SMT.IsSatisfiable(true),
         new SMT.Model([
@@ -614,7 +614,7 @@ sat
   (define-fun ccolleft ((x!0 Column) (x!1 Column)) Bool (let ((a!1 (not (<= (x (upperleft x!0)) (x (bottomright x!1)))))) (and (= (y (upperleft x!1)) (y (upperleft x!0))) (= (y (bottomright x!1)) (y (bottomright x!0))) a!1)))
 )`.trim();
     try {
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       const expected = [
         new SMT.IsSatisfiable(true),
         new SMT.Model([
@@ -709,7 +709,7 @@ sat
   it("should parse all of the output from a real Z3 run (case 1)", () => {
     try {
       const input = fs.readFileSync("test/z3-model-output-test.smt", "utf8");
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       assert(true);
     } catch (e) {
       console.log(e);
@@ -720,7 +720,7 @@ sat
   it("should parse all of the output from a real Z3 run (case 2)", () => {
     try {
       const input = fs.readFileSync("test/z3-model-output-test-2.smt", "utf8");
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       assert(true);
     } catch (e) {
       console.log(e);
@@ -731,7 +731,7 @@ sat
   it("should parse all of the output from a real Z3 run (case 3)", () => {
     try {
       const input = fs.readFileSync("test/z3-model-output-test-3.smt", "utf8");
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       assert(true);
     } catch (e) {
       console.log(e);
@@ -742,7 +742,7 @@ sat
   it("should parse the example", () => {
     try {
       const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       const expected = [
         new SMT.FunctionDefinition(
           "plus",
@@ -767,7 +767,7 @@ describe("Serialization", () => {
   it("should reproduce the input", () => {
     try {
       const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       const json = SMT.serialize(output);
       const output2 = SMT.deserialize(json);
       expect(output2).to.eql(output);
@@ -779,7 +779,7 @@ describe("Serialization", () => {
   it("should also reproduce the input, even when stringified", () => {
     try {
       const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       const json = SMT.serialize(output);
       const jsonStr = JSON.stringify(json);
       const jsonObj = JSON.parse(jsonStr);
@@ -793,7 +793,7 @@ describe("Serialization", () => {
   it("should handle user defined sorts", () => {
     try {
       const input = "(define-fun foo () Foo 1)";
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       const expected = [
         new SMT.FunctionDefinition(
           "foo",
@@ -814,7 +814,7 @@ describe("Serialization", () => {
   it("should correctly serialize and deserialize all data from a real Z3 run", () => {
     try {
       const input = fs.readFileSync("test/z3-model-output-test-4.smt", "utf8");
-      const output = SMT.parse(input);
+      const output = SMT.parse(input, false);
       const json = SMT.serialize(output);
       const str = JSON.stringify(json);
       const json2 = JSON.parse(str);
