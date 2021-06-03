@@ -250,7 +250,8 @@ export namespace SMT {
   const reservedWords = new Set(["true", "false", "sat", "unsat"]);
 
   export class And implements Expr {
-    public readonly type: "And" = "And";
+    public static readonly type: "And" = "And";
+    public readonly type = And.type;
     public readonly clauses: Expr[];
 
     /**
@@ -284,7 +285,8 @@ export namespace SMT {
   }
 
   export class Or implements Expr {
-    public readonly type: "Or" = "Or";
+    public static readonly type: "Or" = "Or";
+    public readonly type = Or.type;
     public readonly clauses: Expr[];
 
     /**
@@ -318,7 +320,8 @@ export namespace SMT {
   }
 
   export class Not implements Expr {
-    public readonly type: "Not" = "Not";
+    public static readonly type: "Not" = "Not";
+    public readonly type = Not.type;
     public readonly clause: Expr;
 
     /**
@@ -354,7 +357,8 @@ export namespace SMT {
   }
 
   export class Equals implements Expr {
-    public readonly type: "Equals" = "Equals";
+    public static readonly type: "Equals" = "Equals";
+    public readonly type = Equals.type;
     public readonly terms: Expr[];
 
     /**
@@ -388,7 +392,8 @@ export namespace SMT {
   }
 
   export class Plus implements Expr {
-    public readonly type: "Plus" = "Plus";
+    public static readonly type: "Plus" = "Plus";
+    public readonly type = Plus.type;
     public readonly terms: Expr[];
 
     /**
@@ -422,7 +427,8 @@ export namespace SMT {
   }
 
   export class Minus implements Expr {
-    public readonly type: "Minus" = "Minus";
+    public static readonly type: "Minus" = "Minus";
+    public readonly type = Minus.type;
     public readonly terms: Expr[];
 
     /**
@@ -456,7 +462,8 @@ export namespace SMT {
   }
 
   export class LessThan implements Expr {
-    public readonly type: "LessThan" = "LessThan";
+    public static readonly type: "LessThan" = "LessThan";
+    public readonly type = LessThan.type;
     public readonly terms: Expr[];
 
     /**
@@ -490,7 +497,8 @@ export namespace SMT {
   }
 
   export class LessThanOrEqual implements Expr {
-    public readonly type: "LessThanOrEqual" = "LessThanOrEqual";
+    public static readonly type: "LessThanOrEqual" = "LessThanOrEqual";
+    public readonly type = LessThanOrEqual.type;
     public readonly terms: Expr[];
 
     /**
@@ -524,7 +532,8 @@ export namespace SMT {
   }
 
   export class GreaterThan implements Expr {
-    public readonly type: "GreaterThan" = "GreaterThan";
+    public static readonly type: "GreaterThan" = "GreaterThan";
+    public readonly type = GreaterThan.type;
     public readonly terms: Expr[];
 
     /**
@@ -558,7 +567,8 @@ export namespace SMT {
   }
 
   export class GreaterThanOrEqual implements Expr {
-    public readonly type: "GreaterThanOrEqual" = "GreaterThanOrEqual";
+    public static readonly type: "GreaterThanOrEqual" = "GreaterThanOrEqual";
+    public readonly type = GreaterThanOrEqual.type;
     public readonly terms: Expr[];
 
     /**
@@ -592,7 +602,8 @@ export namespace SMT {
   }
 
   export class Let implements Expr {
-    public readonly type: "Let" = "Let";
+    public static readonly type: "Let" = "Let";
+    public readonly type = Let.type;
     public readonly bindings: [Var, Expr][];
     public readonly body: Expr;
 
@@ -674,7 +685,8 @@ export namespace SMT {
   }
 
   export class IfThenElse implements Expr {
-    public readonly type: "IfThenElse" = "IfThenElse";
+    public static readonly type: "IfThenElse" = "IfThenElse";
+    public readonly type = IfThenElse.type;
     public readonly cond: Expr;
     public readonly whenTrue: Expr;
     public readonly whenFalse: Expr;
@@ -746,7 +758,8 @@ export namespace SMT {
   }
 
   export class Assert implements Expr {
-    public readonly type: "Assert" = "Assert";
+    public static readonly type: "Assert" = "Assert";
+    public readonly type = Assert.type;
     public readonly clause: Expr;
 
     /**
@@ -774,7 +787,8 @@ export namespace SMT {
   }
 
   export class FunctionDeclaration implements Expr {
-    public readonly type: "FunctionDeclaration" = "FunctionDeclaration";
+    public static readonly type: "FunctionDeclaration" = "FunctionDeclaration";
+    public readonly type = FunctionDeclaration.type;
     public readonly name: string;
     public readonly paramSortList: Sort[];
     public readonly returnSort: Sort;
@@ -824,7 +838,8 @@ export namespace SMT {
   }
 
   export class FunctionDefinition implements Expr {
-    public readonly type: "FunctionDefinition" = "FunctionDefinition";
+    public static readonly type: "FunctionDefinition" = "FunctionDefinition";
+    public readonly type = FunctionDefinition.type;
     public readonly name: string;
     public readonly parameterList: SMT.ArgumentDeclaration[];
     public readonly returnSort: Sort;
@@ -931,7 +946,8 @@ export namespace SMT {
   }
 
   export class DataTypeDeclaration implements Expr {
-    public readonly type: "DataTypeDeclaration" = "DataTypeDeclaration";
+    public static readonly type: "DataTypeDeclaration" = "DataTypeDeclaration";
+    public readonly type = DataTypeDeclaration.type;
     public readonly name: string;
     public readonly impl: Expr;
 
@@ -966,7 +982,8 @@ export namespace SMT {
   }
 
   export class ConstantDeclaration implements Expr {
-    public readonly type: "ConstantDeclaration" = "ConstantDeclaration";
+    public static readonly type: "ConstantDeclaration" = "ConstantDeclaration";
+    public readonly type = ConstantDeclaration.type;
     public readonly name: string;
     public readonly sort: Sort;
 
@@ -1001,7 +1018,8 @@ export namespace SMT {
   }
 
   export class ArgumentDeclaration implements Expr {
-    public readonly type: "ArgumentDeclaration" = "ArgumentDeclaration";
+    public static readonly type: "ArgumentDeclaration" = "ArgumentDeclaration";
+    public readonly type = ArgumentDeclaration.type;
     public readonly name: string;
     public readonly sort: Sort;
 
@@ -1068,7 +1086,8 @@ export namespace SMT {
   }
 
   export class FunctionApplication implements Expr {
-    public readonly type: "FunctionApplication" = "FunctionApplication";
+    public static readonly type: "FunctionApplication" = "FunctionApplication";
+    public readonly type = FunctionApplication.type;
     public readonly name: string;
     public readonly args: Expr[];
 
@@ -1121,7 +1140,8 @@ export namespace SMT {
   }
 
   export class Var implements Expr {
-    public readonly type: "Var" = "Var";
+    public static readonly type: "Var" = "Var";
+    public readonly type = Var.type;
     public readonly name: string;
 
     /**
@@ -1155,7 +1175,8 @@ export namespace SMT {
   }
 
   export class Model implements Expr {
-    public readonly type: "Model" = "Model";
+    public static readonly type: "Model" = "Model";
+    public readonly type = Model.type;
     public readonly exprs: Expr[];
 
     /**
@@ -1193,7 +1214,8 @@ export namespace SMT {
   }
 
   export class IsSatisfiable implements Expr {
-    public readonly type: "IsSatisfiable" = "IsSatisfiable";
+    public static readonly type: "IsSatisfiable" = "IsSatisfiable";
+    public readonly type = IsSatisfiable.type;
     public value: boolean;
 
     /**
@@ -1229,7 +1251,8 @@ export namespace SMT {
   }
 
   export class CheckSatisfiable implements Expr {
-    public readonly type: "CheckSatisfiable" = "CheckSatisfiable";
+    public static readonly type: "CheckSatisfiable" = "CheckSatisfiable";
+    public readonly type = CheckSatisfiable.type;
 
     /**
      * Represents a Z3 check-sat command.
@@ -1252,7 +1275,8 @@ export namespace SMT {
   }
 
   export class GetModel implements Expr {
-    public readonly type: "GetModel" = "GetModel";
+    public static readonly type: "GetModel" = "GetModel";
+    public readonly type = GetModel.type;
 
     /**
      * Represents a Z3 get-model command.
@@ -1281,7 +1305,8 @@ export namespace SMT {
    * Int sort.
    */
   export class Int implements Sort, Expr {
-    public readonly type: "Int" = "Int";
+    public static readonly type: "Int" = "Int";
+    public readonly type = Int.type;
     public value: number;
     private static sortInstance: Sort = new Int(0);
 
@@ -1329,7 +1354,8 @@ export namespace SMT {
    * Bool sort.
    */
   export class Bool implements Expr, Sort {
-    public readonly type: "Bool" = "Bool";
+    public static readonly type: "Bool" = "Bool";
+    public readonly type = Bool.type;
     public value: boolean;
     private static sortInstance: Sort = new Bool(true);
 
@@ -1386,7 +1412,8 @@ export namespace SMT {
    * Unknown sort
    */
   export class UserDefinedSort implements Sort {
-    public readonly type: "UserDefinedSort" = "UserDefinedSort";
+    public static readonly type: "UserDefinedSort" = "UserDefinedSort";
+    public readonly type = UserDefinedSort.type;
     private static sortInstance: Sort = new UserDefinedSort("unknown");
     public name: string;
     public sort = UserDefinedSort.sortInstance;
