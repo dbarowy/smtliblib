@@ -33,6 +33,32 @@ describe("Literal", () => {
         assert.fail();
     }
   });
+
+  it('should parse a literal "-1" as an integer', function* () {
+    const input = new CU.CharStream("-1");
+    const output = yield* SMT.literal(input);
+    const expected = new SMT.Int(-1);
+    switch (output.tag) {
+      case "success":
+        expect(output.result).to.eql(expected);
+        break;
+      case "failure":
+        assert.fail();
+    }
+  });
+
+  it('should parse a literal "-1.3" as a real', function* () {
+    const input = new CU.CharStream("-1.3");
+    const output = yield* SMT.literal(input);
+    const expected = new SMT.Real(-1.3);
+    switch (output.tag) {
+      case "success":
+        expect(output.result).to.eql(expected);
+        break;
+      case "failure":
+        assert.fail();
+    }
+  });
 })
 
 describe("Identifier", () => {

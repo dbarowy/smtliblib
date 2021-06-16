@@ -1343,7 +1343,9 @@ export namespace SMT {
       // if it is followed by a period
       const period = P.char(".");
       const decimal_pt: P.IParser<undefined> = P.fail(period)("An integer cannot contain a period.");
-      return P.pipe<number, Int>(P.left<number, undefined>(P.integer)(decimal_pt))((n) => new Int(n));
+      const negative = P.pipe<number, number>(P.right<CU.CharStream, number>(P.char("-"))(P.integer))(n => -n);
+      const negative_or_not = P.choice(negative)(P.integer);
+      return P.pipe<number, Int>(P.left<number, undefined>(negative_or_not)(decimal_pt))((n) => new Int(n));
     }
 
     public static get sortParser(): P.IParser<Sort> {
@@ -1450,7 +1452,9 @@ export namespace SMT {
     }
 
     public static get valueParser(): P.IParser<Real> {
-      return P.pipe<number, Real>(P.float)((n) => new Real(n));
+      const negative = P.pipe<number, number>(P.right<CU.CharStream, number>(P.char("-"))(P.float))(n => -n);
+      const negative_or_not = P.choice(negative)(P.float);
+      return P.pipe<number, Real>(negative_or_not)((n) => new Real(n));
     }
 
     public static get sortParser(): P.IParser<Sort> {

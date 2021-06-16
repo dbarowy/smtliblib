@@ -1,6 +1,6 @@
 {
   "name": "smtliblib",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "An SMTLIBv2 parser and AST",
   "main": "dist/src/smt.js",
   "directories": {
