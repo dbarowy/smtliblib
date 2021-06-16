@@ -1589,8 +1589,7 @@ export namespace SMT {
   export function parse(s: string, debug: boolean): Expr[] {
     globalDebug = debug;
     const input = new CU.CharStream(s);
-    const p = debug ? P.debug(grammar)("SMTLIB") : grammar;
-    const it = p(input);
+    const it = grammar(input);
     const elem = it.next();
     if (elem.done) {
       const outcome = elem.value;
