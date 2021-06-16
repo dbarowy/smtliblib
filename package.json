@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/dbarowy/smtliblib#readme",
   "dependencies": {
-    "parsecco": "^1.5.0",
+    "parsecco": "^1.5.1",
     "typescript": "^4.2.3"
   },
   "devDependencies": {

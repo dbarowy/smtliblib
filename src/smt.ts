@@ -17,6 +17,11 @@ interface JSONObject {
 }
 
 /**
+ * A global flag that toggles debugging
+ */
+export let globalDebug = false;
+
+/**
  * exprs is the top-level parser in the grammar.
  */
 export let [exprs, exprsImpl] = P.recParser<Expr[]>();
@@ -1327,11 +1332,18 @@ export namespace SMT {
     }
 
     constructor(n: number) {
+      if (Math.floor(n) !== n) {
+        throw new Error("An integer cannot have a fraction.");
+      }
       this.value = n;
     }
 
     public static get valueParser(): P.IParser<Int> {
-      return P.pipe<number, Int>(P.integer)((n) => new Int(n));
+      // an integer parser should parse an int which should fail
+      // if it is followed by a period
+      const period = P.char(".");
+      const decimal_pt: P.IParser<undefined> = P.fail(period)("An integer cannot contain a period.");
+      return P.pipe<number, Int>(P.left<number, undefined>(P.integer)(decimal_pt))((n) => new Int(n));
     }
 
     public static get sortParser(): P.IParser<Sort> {
@@ -1409,6 +1421,55 @@ export namespace SMT {
   }
 
   /**
+   * Real sort
+   */
+  export class Real implements Expr, Sort {
+    public static readonly type: "Real" = "Real";
+    public readonly type = Real.type;
+    public value: number;
+    private static sortInstance: Sort = new Real(0);
+
+    constructor(n: number) {
+      this.value = n;
+    }
+
+    public get sort(): Sort {
+      return SMT.Real.sortInstance;
+    }
+
+    public static get sort(): Sort {
+      return SMT.Real.sortInstance;
+    }
+
+    public get name(): string {
+      return "Real";
+    }
+
+    public get formula(): string {
+      return this.value.toString();
+    }
+
+    public static get valueParser(): P.IParser<Real> {
+      return P.pipe<number, Real>(P.float)((n) => new Real(n));
+    }
+
+    public static get sortParser(): P.IParser<Sort> {
+      return P.pipe<CU.CharStream, Sort>(P.str("Real"))((b) => Real.sort);
+    }
+
+    public get serialized(): object {
+      return {
+        type: this.type,
+        value: this.value,
+      };
+    }
+
+    public static deserialize(json: JSONObject): Real {
+      return new Real(json["value"] as number);
+    }
+  }
+
+  /**
    * Unknown sort
    */
   export class UserDefinedSort implements Sort {
@@ -1416,7 +1477,7 @@ export namespace SMT {
     public readonly type = UserDefinedSort.type;
     private static sortInstance: Sort = new UserDefinedSort("unknown");
     public name: string;
-    public sort = UserDefinedSort.sortInstance;
+    public sort = this;
     public static sort = UserDefinedSort.sortInstance;
     constructor(name: string) {
       this.name = name;
@@ -1443,26 +1504,42 @@ export namespace SMT {
     }
   }
 
+  function myDebug<T>(debug: boolean) {
+    return (p: P.IParser<T>) => {
+      return (label: string) => {
+        if (debug) {
+          return P.debug<T>(p)(label);
+        } else {
+          return p;
+        }
+      }
+    }
+  }
+
+  /**
+   * Sorts.
+   */
   const sort = P.choices(
-    Int.sortParser,
-    Bool.sortParser,
-    UserDefinedSort.sortParser
+    myDebug<Sort>(globalDebug)(Int.sortParser)("int sort"),
+    myDebug<Sort>(globalDebug)(Bool.sortParser)("bool sort"),
+    myDebug<Sort>(globalDebug)(Real.sortParser)("real sort"),
+    myDebug<Sort>(globalDebug)(UserDefinedSort.sortParser)("udf sort")
   );
 
   /**
    * Core operations.
    */
   const ops = P.choices<Expr>(
-    Not.parser,
-    And.parser,
-    Or.parser,
-    Equals.parser,
-    LessThan.parser,
-    LessThanOrEqual.parser,
-    GreaterThan.parser,
-    GreaterThanOrEqual.parser,
-    Plus.parser,
-    Minus.parser
+    myDebug<Expr>(globalDebug)(Not.parser)("logical not"),
+    myDebug<Expr>(globalDebug)(And.parser)("logical and"),
+    myDebug<Expr>(globalDebug)(Or.parser)("logical or"),
+    myDebug<Expr>(globalDebug)(Equals.parser)("equals"),
+    myDebug<Expr>(globalDebug)(LessThan.parser)("less than"),
+    myDebug<Expr>(globalDebug)(LessThanOrEqual.parser)("less than or equal"),
+    myDebug<Expr>(globalDebug)(GreaterThan.parser)("greater than"),
+    myDebug<Expr>(globalDebug)(GreaterThanOrEqual.parser)("greater than or equal"),
+    myDebug<Expr>(globalDebug)(Plus.parser)("plus"),
+    myDebug<Expr>(globalDebug)(Minus.parser)("minus")
   );
 
   /**
@@ -1482,17 +1559,25 @@ export namespace SMT {
   );
 
   /**
-   * Parses an arbitrarily complex expression.
+   * Parses literals.
+   */
+  export const literal = P.choices<Expr>(
+      myDebug<SMT.Bool>(globalDebug)(Bool.valueParser)("bool"),
+      myDebug<SMT.Int>(globalDebug)(Int.valueParser)("int"),
+      myDebug<SMT.Real>(globalDebug)(Real.valueParser)("real")
+    );
+
+  /**
+   * Parses an arbitrary expression.
    */
   exprImpl.contents = P.choices<Expr>(
-    ops,
-    Let.parser,
-    FunctionApplication.parser,
-    FunctionDefinition.parser,
-    Var.parser,
-    IsSatisfiable.parser,
-    Bool.valueParser,
-    Int.valueParser
+    myDebug<Expr>(globalDebug)(ops)("operators"),
+    myDebug<SMT.Let>(globalDebug)(Let.parser)("let"),
+    myDebug<SMT.FunctionApplication>(globalDebug)(FunctionApplication.parser)("function application"),
+    myDebug<SMT.FunctionDefinition>(globalDebug)(FunctionDefinition.parser)("function definition"),
+    myDebug<SMT.Var>(globalDebug)(Var.parser)("variable"),
+    myDebug<SMT.IsSatisfiable>(globalDebug)(IsSatisfiable.parser)("is-sat"),
+    myDebug<Expr>(globalDebug)(literal)("literal")
   );
 
   /**
@@ -1502,6 +1587,7 @@ export namespace SMT {
    * @param debug Print diagnostic information.
    */
   export function parse(s: string, debug: boolean): Expr[] {
+    globalDebug = debug;
     const input = new CU.CharStream(s);
     const p = debug ? P.debug(grammar)("SMTLIB") : grammar;
     const it = p(input);
@@ -1542,6 +1628,8 @@ export namespace SMT {
   function deserializeLiteral(json: JSONObject): Expr {
     try {
       switch (json["type"]) {
+        case "Real":
+          return Real.deserialize(json);
         case "Int":
           return Int.deserialize(json);
         case "Bool":
@@ -1559,6 +1647,8 @@ export namespace SMT {
   function deserializeSort(json: JSONObject): Sort {
     try {
       switch (json["type"]) {
+        case "Real":
+          return Real.deserialize(json);
         case "Int":
           return Int.deserialize(json);
         case "Bool":

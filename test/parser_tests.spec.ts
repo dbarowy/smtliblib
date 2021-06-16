@@ -7,6 +7,34 @@ import * as fs from "fs";
 // needed for tests that use generators
 require('mocha-generators').install();
 
+describe("Literal", () => {
+  it('should parse a literal "1" as an integer', function* () {
+    const input = new CU.CharStream("1");
+    const output = yield* SMT.literal(input);
+    const expected = new SMT.Int(1);
+    switch (output.tag) {
+      case "success":
+        expect(output.result).to.eql(expected);
+        break;
+      case "failure":
+        assert.fail();
+    }
+  });
+
+  it('should parse a literal "1.3" as a real', function* () {
+    const input = new CU.CharStream("1.3");
+    const output = yield* SMT.literal(input);
+    const expected = new SMT.Real(1.3);
+    switch (output.tag) {
+      case "success":
+        expect(output.result).to.eql(expected);
+        break;
+      case "failure":
+        assert.fail();
+    }
+  });
+})
+
 describe("Identifier", () => {
   it('should parse "foo"', function* () {
     const input = new CU.CharStream("foo");
@@ -761,6 +789,19 @@ sat
       assert.fail(e);
     }
   });
+
+  it("should parse another real input", () => {
+    try {
+      const input = "(define-fun numericValue ((c Cell)) Real 2.5)";
+      const output = SMT.parse(input, false);
+      const expected = [
+        new SMT.FunctionDefinition("numericValue", [new SMT.ArgumentDeclaration("c", new SMT.UserDefinedSort("Cell").sort)], SMT.Real.sort, new SMT.Real(2.5))
+      ];
+      expect(output).to.eql(expected);
+    } catch (e) {
+      assert.fail(e);
+    }
+  })
 });
 
 describe("Serialization", () => {
