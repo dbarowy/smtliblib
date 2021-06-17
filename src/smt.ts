@@ -1448,6 +1448,14 @@ export namespace SMT {
     }
 
     public get formula(): string {
+      // if the number is an integer, always print with at least one decimal place
+      if (Math.floor(this.value) === this.value) {
+        return this.value.toFixed(1).toString();
+      }
+      // if the number is less than one, add a leading zero
+      if (this.value < 0) {
+        return "0" + this.value.toString();
+      }
       return this.value.toString();
     }
 
