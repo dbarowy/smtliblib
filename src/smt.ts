@@ -461,6 +461,76 @@ export namespace SMT {
     }
   }
 
+  export class Division implements Expr {
+    public static readonly type: "Division" = "Division";
+    public readonly type = Division.type;
+    public readonly terms: Expr[];
+
+    /**
+     * Represents an addition constraint in SMTLIB.
+     * @param terms An array of SMTLIB clauses.
+     */
+    constructor(terms: Expr[]) {
+      this.terms = terms;
+    }
+
+    public get formula(): string {
+      return opPretty("/", this.terms);
+    }
+
+    public static get parser(): P.IParser<Division> {
+      return opParser("/", (es) => new Division(es));
+    }
+
+    public get serialized(): object {
+      return {
+        type: this.type,
+        terms: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): Division {
+      return new Division(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
+    }
+  }
+
+  export class Multiplication implements Expr {
+    public static readonly type: "Multiplication" = "Multiplication";
+    public readonly type = Multiplication.type;
+    public readonly terms: Expr[];
+
+    /**
+     * Represents an addition constraint in SMTLIB.
+     * @param terms An array of SMTLIB clauses.
+     */
+    constructor(terms: Expr[]) {
+      this.terms = terms;
+    }
+
+    public get formula(): string {
+      return opPretty("*", this.terms);
+    }
+
+    public static get parser(): P.IParser<Multiplication> {
+      return opParser("*", (es) => new Multiplication(es));
+    }
+
+    public get serialized(): object {
+      return {
+        type: this.type,
+        terms: this.terms.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): Multiplication {
+      return new Multiplication(
+        (json["terms"] as JSONObject[]).map((t) => deserializeExpr(t))
+      );
+    }
+  }
+
   export class LessThan implements Expr {
     public static readonly type: "LessThan" = "LessThan";
     public readonly type = LessThan.type;
@@ -1548,7 +1618,9 @@ export namespace SMT {
     GreaterThan.parser,
     GreaterThanOrEqual.parser,
     Plus.parser,
-    Minus.parser
+    Minus.parser,
+    Division.parser,
+    Multiplication.parser
   );
 
   /**
@@ -1715,6 +1787,10 @@ export namespace SMT {
           return Minus.deserialize(json);
         case Plus.type:
           return Plus.deserialize(json);
+        case Division.type:
+          return Division.deserialize(json);
+        case Multiplication.type:
+          return Multiplication.deserialize(json);
         case Equals.type:
           return Equals.deserialize(json);
         case Not.type:
