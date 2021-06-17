@@ -17,11 +17,6 @@ interface JSONObject {
 }
 
 /**
- * A global flag that toggles debugging
- */
-export let globalDebug = false;
-
-/**
  * exprs is the top-level parser in the grammar.
  */
 export let [exprs, exprsImpl] = P.recParser<Expr[]>();
@@ -1516,42 +1511,30 @@ export namespace SMT {
     }
   }
 
-  function myDebug<T>(debug: boolean) {
-    return (p: P.IParser<T>) => {
-      return (label: string) => {
-        if (debug) {
-          return P.debug<T>(p)(label);
-        } else {
-          return p;
-        }
-      }
-    }
-  }
-
   /**
    * Sorts.
    */
   const sort = P.choices(
-    myDebug<Sort>(globalDebug)(Int.sortParser)("int sort"),
-    myDebug<Sort>(globalDebug)(Bool.sortParser)("bool sort"),
-    myDebug<Sort>(globalDebug)(Real.sortParser)("real sort"),
-    myDebug<Sort>(globalDebug)(UserDefinedSort.sortParser)("udf sort")
+    Int.sortParser,
+    Bool.sortParser,
+    Real.sortParser,
+    UserDefinedSort.sortParser
   );
 
   /**
    * Core operations.
    */
   const ops = P.choices<Expr>(
-    myDebug<Expr>(globalDebug)(Not.parser)("logical not"),
-    myDebug<Expr>(globalDebug)(And.parser)("logical and"),
-    myDebug<Expr>(globalDebug)(Or.parser)("logical or"),
-    myDebug<Expr>(globalDebug)(Equals.parser)("equals"),
-    myDebug<Expr>(globalDebug)(LessThan.parser)("less than"),
-    myDebug<Expr>(globalDebug)(LessThanOrEqual.parser)("less than or equal"),
-    myDebug<Expr>(globalDebug)(GreaterThan.parser)("greater than"),
-    myDebug<Expr>(globalDebug)(GreaterThanOrEqual.parser)("greater than or equal"),
-    myDebug<Expr>(globalDebug)(Plus.parser)("plus"),
-    myDebug<Expr>(globalDebug)(Minus.parser)("minus")
+    Not.parser,
+    And.parser,
+    Or.parser,
+    Equals.parser,
+    LessThan.parser,
+    LessThanOrEqual.parser,
+    GreaterThan.parser,
+    GreaterThanOrEqual.parser,
+    Plus.parser,
+    Minus.parser
   );
 
   /**
@@ -1574,22 +1557,22 @@ export namespace SMT {
    * Parses literals.
    */
   export const literal = P.choices<Expr>(
-      myDebug<SMT.Bool>(globalDebug)(Bool.valueParser)("bool"),
-      myDebug<SMT.Int>(globalDebug)(Int.valueParser)("int"),
-      myDebug<SMT.Real>(globalDebug)(Real.valueParser)("real")
+      Bool.valueParser,
+      Int.valueParser,
+      Real.valueParser
     );
 
   /**
    * Parses an arbitrary expression.
    */
   exprImpl.contents = P.choices<Expr>(
-    myDebug<Expr>(globalDebug)(ops)("operators"),
-    myDebug<SMT.Let>(globalDebug)(Let.parser)("let"),
-    myDebug<SMT.FunctionApplication>(globalDebug)(FunctionApplication.parser)("function application"),
-    myDebug<SMT.FunctionDefinition>(globalDebug)(FunctionDefinition.parser)("function definition"),
-    myDebug<SMT.Var>(globalDebug)(Var.parser)("variable"),
-    myDebug<SMT.IsSatisfiable>(globalDebug)(IsSatisfiable.parser)("is-sat"),
-    myDebug<Expr>(globalDebug)(literal)("literal")
+    ops,
+    Let.parser,
+    FunctionApplication.parser,
+    FunctionDefinition.parser,
+    Var.parser,
+    IsSatisfiable.parser,
+    literal
   );
 
   /**
@@ -1598,8 +1581,7 @@ export namespace SMT {
    * @param s A string.
    * @param debug Print diagnostic information.
    */
-  export function parse(s: string, debug: boolean): Expr[] {
-    globalDebug = debug;
+  export function parse(s: string): Expr[] {
     const input = new CU.CharStream(s);
     const it = grammar(input);
     const elem = it.next();

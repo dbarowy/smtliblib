@@ -9,7 +9,7 @@ fs.readFile(file, 'utf8' , (err, data) => {
     return
   }
   try {
-    const output = SMT.parse(data, true);
+    const output = SMT.parse(data);
     console.log("Successful parse.");
   } catch (err) {
     console.log("Could not parse data.");
