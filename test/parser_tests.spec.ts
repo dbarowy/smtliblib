@@ -806,6 +806,28 @@ sat
     }
   });
 
+  it("should parse all of the input from a real Z3 run (case 1)", () => {
+    try {
+      const input = fs.readFileSync("test/z3-model-input-test-2.smt", "utf8");
+      const output = SMT.parse(input);
+      assert(true);
+    } catch (e) {
+      console.log(e);
+      assert.fail(e);
+    }
+  });
+
+  it("should parse all of the input from a real Z3 run (case 2)", () => {
+    try {
+      const input = fs.readFileSync("test/z3-model-input-test-3.smt", "utf8");
+      const output = SMT.parse(input);
+      assert(true);
+    } catch (e) {
+      console.log(e);
+      assert.fail(e);
+    }
+  });
+
   it("should parse the example", () => {
     try {
       const input = "(define-fun plus ((a Int) (b Int)) Int (+ a b))";

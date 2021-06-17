@@ -101,6 +101,21 @@ const output2 = SMT.deserialize(jsonObj);
 
 where `output` is guaranteed to be exactly the same as `output2`.
 
+## Visualizing a parse
+
+The `test/debug_runner.ts` program lets you try `smtliblib` on a text file containing an SMTLIB program.
+
+1. Be sure that you've compiled `smtliblib`.
+   ```
+   $ npm run build
+   ```
+2. Then run the program:
+   ```
+   $ node dist/test/debug_runner.js test/z3-model-input-test-2.smt
+   ```
+
+If the input is not parseable, `smtliblib` will say so, otherwise it will print out the parse tree in 80-column format.
+
 ## Contributing
 
 This library is currently incomplete. I add features to it as I need them.
