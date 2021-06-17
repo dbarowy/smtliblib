@@ -1455,9 +1455,23 @@ export namespace SMT {
     }
 
     public static get valueParser(): P.IParser<Real> {
-      const negative = P.pipe<number, number>(P.right<CU.CharStream, number>(P.char("-"))(P.float))(n => -n);
-      const negative_or_not = P.choice(negative)(P.float);
-      return P.pipe<number, Real>(negative_or_not)((n) => new Real(n));
+      const negative = P.pipe<number, number>(P.right<CU.CharStream, number>(P.char("-"))(P.integer))(n => -n);
+      const negative_or_not = P.choice(negative)(P.integer);
+      return P.pipe2<number,number,Real>(
+        P.left<number,CU.CharStream>(
+          negative_or_not
+        )(
+          P.char(".")
+        )
+      )(
+        P.integer
+      )(
+        (w,f) => {
+          const both = w.toString() + "." + f.toString();
+          const n = parseFloat(both);
+          return new Real(n);
+        }
+      );
     }
 
     public static get sortParser(): P.IParser<Sort> {
