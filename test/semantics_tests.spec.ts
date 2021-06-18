@@ -17,4 +17,9 @@ describe("Real", () => {
         const r = new SMT.Real(1.23456789);
         expect(r.formula).to.eql("1.23456789");
     })
+
+    it("should print negative numbers with a fraction with arbitrary precision", () => {
+        const r = new SMT.Real(-1.23456789);
+        expect(r.formula).to.eql("-1.23456789");
+    })
 });

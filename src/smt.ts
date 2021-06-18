@@ -1575,10 +1575,6 @@ export namespace SMT {
       if (Math.floor(this.value) === this.value) {
         return this.value.toFixed(1).toString();
       }
-      // if the number is less than one, add a leading zero
-      if (this.value < 0) {
-        return "0" + this.value.toString();
-      }
       return this.value.toString();
     }
 
