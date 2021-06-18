@@ -407,6 +407,30 @@ describe("IfThenElse", () => {
   });
 });
 
+describe("DatatypeDeclaration", () => {
+  it("should parse an datatype-declaration expression", function* () {
+    const input = new CU.CharStream("(declare-datatype Cell ((cell (x Int) (y Int))))");
+    const output = yield* SMT.DataTypeDeclaration.parser(input);
+    const expected = new SMT.DataTypeDeclaration(
+      "Cell",
+      new SMT.FunctionApplication(
+        "cell",
+        [
+          new SMT.ArgumentDeclaration("x", SMT.Int.sort),
+          new SMT.ArgumentDeclaration("y", SMT.Int.sort)
+        ]
+      )
+    )
+    switch (output.tag) {
+      case "success":
+        expect(output.result).to.eql(expected);
+        break;
+      case "failure":
+        assert.fail();
+    }
+  })
+});
+
 describe("ArgumentDeclaration", () => {
   it("should handle a basic argument declaration", function* () {
     const input = new CU.CharStream("((x Bool))");
@@ -847,17 +871,16 @@ sat
     }
   });
 
-  // FIXME
-  // it("should parse ADTs", () => {
-  //   try {
-  //     const input = fs.readFileSync("test/z3-model-input-test-3.smt", "utf8");
-  //     const output = SMT.parse(input);
-  //     assert(true);
-  //   } catch (e) {
-  //     console.log(e);
-  //     assert.fail(e);
-  //   }
-  // });
+  it("should parse ADTs", () => {
+    try {
+      const input = fs.readFileSync("test/z3-model-input-test-3.smt", "utf8");
+      const output = SMT.parse(input);
+      assert(true);
+    } catch (e) {
+      console.log(e);
+      assert.fail(e);
+    }
+  });
 
   it("should parse the example", () => {
     try {

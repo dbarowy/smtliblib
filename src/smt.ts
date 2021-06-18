@@ -17,6 +17,13 @@ interface JSONObject {
 }
 
 /**
+ * The identity function.
+ * @param t 
+ * @returns t
+ */
+function id<T>(t: T) : T { return t; }
+
+/**
  * exprs is the top-level parser in the grammar.
  */
 export let [exprs, exprsImpl] = P.recParser<Expr[]>();
@@ -1049,6 +1056,69 @@ export namespace SMT {
         deserializeExpr(json["impl"])
       );
     }
+
+    public static get parser(): P.IParser<DataTypeDeclaration> {
+      // (declare-datatype name ((c (s1 τ1) ··· (sm τm))))
+      // e.g., (declare-datatype ((cell (x Int) (y Int))))
+
+      // This is the (s τ) part
+      const declSingle = par(
+          // the part we care about
+          P.seq<CU.CharStream, Sort>(
+            // arg name
+            padR1(
+              identifier
+            )
+          )(
+            // sort name
+            sort
+          )
+        );
+
+      // This is the (c (s1 τ1) ··· (sm τm)) part
+      const constructor: P.IParser<Expr> = par(
+        par(
+          P.pipe2<CU.CharStream, ArgumentDeclaration[], Expr>(
+            // constructor name
+            padR1(
+              identifier
+            )
+          )(
+            // (s1 τ1) ··· (sm τm)
+            P.many1<ArgumentDeclaration>(
+              padR(
+                P.pipe<[CU.CharStream, Sort], ArgumentDeclaration>(
+                  declSingle
+                )(
+                  ([t,s]) => new ArgumentDeclaration(t.toString(),s)
+                )
+              )
+            )
+          )(
+            (n: CU.CharStream, args: ArgumentDeclaration[]) => new FunctionApplication(n.toString(), args)
+          )
+        )
+      )
+
+      // this is the (declare-datatype name ((c (s1 τ1) ··· (sm τm)))) part
+      return par(
+        P.right<CU.CharStream, DataTypeDeclaration>(
+          padR1(
+            P.str("declare-datatype")
+          )
+        )(
+          P.pipe2<CU.CharStream, Expr, DataTypeDeclaration>(
+            padR1(
+              identifier
+            )
+          )(
+            constructor
+          )(
+            (t, u) => new DataTypeDeclaration(t.toString(), u)
+          )
+        )
+      )
+    }
   }
 
   export class ConstantDeclaration implements Expr {
@@ -1109,17 +1179,11 @@ export namespace SMT {
 
     public static get parser(): P.IParser<ArgumentDeclaration[]> {
       const declSingle = P.pipe<[CU.CharStream, Sort], ArgumentDeclaration>(
-        P.between<CU.CharStream, CU.CharStream, [CU.CharStream, Sort]>(
-          // opening paren
-          P.left<CU.CharStream, CU.CharStream>(P.char("("))(P.ws)
-        )(
-          // closing paren
-          P.left<CU.CharStream, CU.CharStream>(P.ws)(P.char(")"))
-        )(
+        par(
           // the part we care about
           P.seq<CU.CharStream, Sort>(
             // arg name
-            P.left<CU.CharStream, CU.CharStream>(identifier)(P.ws)
+            padR(identifier)
           )(
             // sort name
             sort
@@ -1127,15 +1191,9 @@ export namespace SMT {
         )
       )(([name, sort]) => new ArgumentDeclaration(name.toString(), sort));
 
-      return P.between<CU.CharStream, CU.CharStream, ArgumentDeclaration[]>(
-        // opening paren
-        P.left<CU.CharStream, CU.CharStream>(P.char("("))(P.ws)
-      )(
-        // closing paren
-        P.left<CU.CharStream, CU.CharStream>(P.ws)(P.char(")"))
-      )(
+      return par(
         // the part we care about
-        P.many(P.left(declSingle)(P.ws))
+        P.many(padR(declSingle))
       );
     }
 
@@ -1227,7 +1285,7 @@ export namespace SMT {
     }
 
     public static get parser(): P.IParser<Var> {
-      return P.pipe<CU.CharStream, Var>(identifier)(
+      return P.pipe<CU.CharStream, Var>(SMT.identifier)(
         (v) => new Var(v.toString())
       );
     }
@@ -1654,6 +1712,7 @@ export namespace SMT {
   exprImpl.contents = P.choices<Expr>(
     ops,
     Let.parser,
+    DataTypeDeclaration.parser,
     FunctionApplication.parser,
     FunctionDefinition.parser,
     Var.parser,
