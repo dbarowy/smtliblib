@@ -74,6 +74,21 @@ describe("Literal", () => {
   });
 })
 
+describe("Comment", () => {
+  it('should parse a comment', function* () {
+    const input = new CU.CharStream("; this is a comment!");
+    const output = yield* SMT.Comment.parser(input);
+    const expected = new SMT.Comment(" this is a comment!");
+    switch(output.tag) {
+      case "success":
+        expect(output.result).to.eql(expected);
+        break;
+      case "failure":
+        assert.fail();
+    }
+  })
+})
+
 describe("Identifier", () => {
   it('should parse "foo"', function* () {
     const input = new CU.CharStream("foo");
@@ -649,6 +664,34 @@ describe("Grammar", () => {
     try {
       const output = SMT.parse("truez");
       const expected = [new SMT.Var("truez")];
+      expect(output).to.eql(expected);
+    } catch (e) {
+      assert.fail();
+    }
+  });
+
+  it("should parse an expression with comments", () => {
+    try {
+      const input = "; test program\nsat";
+      const output = SMT.parse(input);
+      const expected = [
+        new SMT.Comment(" test program"),
+        new SMT.IsSatisfiable(true),
+      ]
+      expect(output).to.eql(expected);
+    } catch (e) {
+      assert.fail();
+    }
+  });
+
+  it("should parse an expression with an inline comment", () => {
+    try {
+      const input = "sat;foo";
+      const output = SMT.parse(input);
+      const expected = [
+        new SMT.IsSatisfiable(true),
+        new SMT.Comment("foo"),
+      ]
       expect(output).to.eql(expected);
     } catch (e) {
       assert.fail();

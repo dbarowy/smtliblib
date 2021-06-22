@@ -1426,8 +1426,55 @@ export namespace SMT {
     }
   }
 
-  // Built-in SMT sorts
-  // FWIW, these do double-duty as sorts and as expressions.
+  export class Comment implements Expr {
+    public static readonly type: "Comment" = "Comment";
+    public readonly type = Comment.type;
+    
+    /**
+     * Represents a comment
+     */
+    constructor(public readonly comment: string) {}
+
+    public get formula(): string {
+      return `; ${this.comment}`;
+    }
+
+    public get serialized(): object {
+      return {
+        type: this.type,
+        comment: this.comment
+      };
+    }
+
+    public static deserialize(json: JSONObject): Comment {
+      return new Comment(json["comment"] as string);
+    }
+
+    public static get parser(): P.IParser<Comment> {
+      return pad(
+        P.pipe<CU.CharStream, Comment>(
+          P.right<CU.CharStream, CU.CharStream>(
+            P.char(";")
+          )(
+            // consume anything until a newline is encountered
+            P.pipe<CU.CharStream[], CU.CharStream>(
+              P.many<CU.CharStream>(
+                P.sat((ch) => ch !== "\n" && ch !== "\r")
+              )
+            )(
+              CU.CharStream.concat
+            )
+          )
+        )(
+          (com => new Comment(com.toString()))
+        )
+      )
+    }
+  }
+
+  /**
+   *  Built-in SMTLIB Sorts
+   */
 
   /**
    * Int sort.
@@ -1713,9 +1760,9 @@ export namespace SMT {
     FunctionDefinition.parser,
     Var.parser,
     IsSatisfiable.parser,
-    literal
+    literal,
+    Comment.parser
   );
-
   /**
    * Parses an input string into an SMTLIB AST. Throws
    * an exception if parsing fails.
