@@ -255,6 +255,46 @@ describe("Or", () => {
   });
 });
 
+describe("Forall", () => {
+  it("should parse a basic forall expression", function* () {
+    const input = new CU.CharStream("(forall ((x Int)) (> x 5))");
+    const output = yield* SMT.Forall.parser(input);
+    const expected = new SMT.Forall(
+      [new SMT.ArgumentDeclaration("x", SMT.Int.sort)],
+      new SMT.GreaterThan([
+        new SMT.Var("x"),
+        new SMT.Int(5)
+      ])
+    )
+    switch (output.tag) {
+      case "success":
+        expect(output.result).to.eql(expected);
+        break;
+      case "failure":
+        assert.fail();
+    }
+  });
+});
+
+describe("Implies", () => {
+  it("should parse a basic implication", function* () {
+    const input = new CU.CharStream("(=> 1 true 3.2)");
+    const output = yield* SMT.Implies.parser(input);
+    const expected = new SMT.Implies([
+      new SMT.Int(1),
+      new SMT.Bool(true),
+      new SMT.Real(3.2)
+    ]);
+    switch (output.tag) {
+      case "success":
+        expect(output.result).to.eql(expected);
+        break;
+      case "failure":
+        assert.fail();
+    }
+  });
+});
+
 describe("Plus", () => {
   it("should parse a basic + expression", function* () {
     const input = new CU.CharStream("(+ 1 2)");
@@ -959,7 +999,17 @@ sat
     } catch (e) {
       assert.fail(e);
     }
-  })
+  });
+
+  it ("should parse a real-world forall expression", () => {
+    try {
+      const input = "(assert (forall ((other Column)) (=> (isAnyColumn other) (isMax arg1 other))))";
+      const output = SMT.parse(input);
+      assert(true);
+    } catch(e) {
+      assert.fail();
+    }
+  });
 });
 
 describe("Serialization", () => {

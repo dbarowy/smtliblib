@@ -363,6 +363,109 @@ export namespace SMT {
     }
   }
 
+  export class Implies implements Expr {
+    public static readonly type: "Implies" = "Implies";
+    public readonly type = Implies.type;
+
+    /**
+     * Represents an implication.
+     *   `new Implies([e1, e2])`
+     * means `e1 => e2`, and
+     *   `new Implies([e1, e2, e3])`
+     * is shorthand for `e1 => (e2 => e3)`
+     * @param exprs An array of expressions.
+     */
+    constructor(public readonly exprs: Expr[]) {}
+
+    public get formula(): string {
+      return `(=> ${this.exprs.map((e) => e.formula).join(" ")})`;
+    }
+
+    public static get parser(): P.IParser<Implies> {
+        return par(
+          P.right<CU.CharStream, Implies>(
+            // first the implication symbol
+            padR1(
+              P.str("=>")
+            )
+          )(
+            // then a list of expressions
+            P.pipe<Expr[], Implies>(
+              sepBy1(expr)(P.ws)
+            )(
+              (es) => new Implies(es)
+            )
+          )
+        )
+    }
+
+    public get serialized(): object {
+      return {
+        type: this.type,
+        args: this.exprs.map((e) => e.serialized),
+      };
+    }
+
+    public static deserialize(json: JSONObject): Implies {
+      return new Implies(
+        (json["exprs"] as JSONObject[]).map((e) => deserializeExpr(e))
+      );
+    }
+  }
+
+  export class Forall implements Expr {
+    public static readonly type: "Forall" = "Forall";
+    public readonly type = Forall.type;
+
+    /**
+     * Represents a universally quantified expression.
+     * @param parameterList 
+     * @param expr 
+     */
+    constructor(
+      public readonly parameterList: ArgumentDeclaration[],
+      public readonly expr: Expr
+    ) {}
+
+    public get formula(): string {
+      return `(forall (${this.parameterList.map((arg) => arg.formula).join(" ")}) ${this.expr.formula})`;
+    }
+
+    public static get parser() {
+      return par(
+        P.pipe2<ArgumentDeclaration[], Expr, Forall>(
+            P.right<CU.CharStream, ArgumentDeclaration[]>(
+              P.str("forall")
+            )(
+              // arguments
+              padL1(ArgumentDeclaration.parser)
+            )
+        )(
+          padL1(expr)
+        )(
+          ((args, expr) => new Forall(args, expr))
+        )
+      );
+    }
+
+    public get serialized(): object {
+      return {
+        type: this.type,
+        parameterList: this.parameterList.map((a) => a.serialized),
+        expr: this.expr.serialized
+      };
+    }
+
+    public static deserialize(json: JSONObject): Forall {
+      return new Forall(
+        (json["parameterList"] as JSONObject[]).map((e) =>
+          ArgumentDeclaration.deserialize(e)
+        ),
+        json["expr"] as Expr
+      )
+    }
+  }
+
   export class Equals implements Expr {
     public static readonly type: "Equals" = "Equals";
     public readonly type = Equals.type;
@@ -1721,7 +1824,8 @@ export namespace SMT {
     Plus.parser,
     Minus.parser,
     Division.parser,
-    Multiplication.parser
+    Multiplication.parser,
+    Implies.parser
   );
 
   /**
@@ -1756,8 +1860,9 @@ export namespace SMT {
     ops,
     Let.parser,
     DataTypeDeclaration.parser,
-    FunctionApplication.parser,
+    Forall.parser,
     FunctionDefinition.parser,
+    FunctionApplication.parser,
     Var.parser,
     IsSatisfiable.parser,
     literal,
@@ -1901,6 +2006,10 @@ export namespace SMT {
           return Or.deserialize(json);
         case And.type:
           return And.deserialize(json);
+        case Forall.type:
+          return Forall.deserialize(json);
+        case Implies.type:
+          return Implies.deserialize(json);
         default:
           // is it a literal?
           try {
